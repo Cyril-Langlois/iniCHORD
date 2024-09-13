@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "inichord"
+version = "0.1.0"
+description = "image series treatment tools"
+authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]
+license = "CeCILL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

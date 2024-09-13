@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>623</width>
+    <height>417</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>NLMD denoising</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* Couleur du fond, label, combobox, progressbar vide et spin box */
+QWidget, QLabel, QComboBox, QProgressBar, QSpinBox {background-color: rgb(253, 249, 248)}
+
+/* Couleur quand inactif */
+QPushButton:disabled, QComboBox:disabled, QSpinBox:disabled {background-color: rgba(243, 98, 64,150)}
+
+/* Couleur des boutons et des selecteurs */
+QPushButton, QComboBox::drop-down:button, QComboBox::down-arrow, QComboBox::down-arrow:disabled, QSpinBox::drop-down:button, QSpinBox::down-arrow, QSpinBox::down-arrow:disabled, QSpinBox::drop-up:button, QSpinBox::up-arrow, QSpinBox::up-arrow:disabled, QSlider::handle:horizontal {background-color: rgb(226, 120, 95)}
+
+/* Couleur des bordures de même couleur que les boutons */
+QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:button {border-color: rgb(193, 167, 181)}
+
+/* Couleur des textes */
+QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, Line, QTextEdit, QSpinBox {color: rgb(0, 0, 0)}
+
+/* style des bordures 1 */
+QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+	border-style : outset;
+	min-width : 5em;
+}
+
+/* style des bordures 2 */
+QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+	border-radius: 7px;
+	border-width: 3px;
+	border-color: gray;
+}
+
+/* Font 1 */
+QPushButton, QPushButton:hover, QCheckBox, QProgressBar {font: 12pt &quot;Noto Sans Cond&quot;}
+
+/* Font 2 */
+QComboBox, QTextEdit, QSpinBox {font: 10pt &quot;Noto Sans Cond&quot;}
+
+/* Padding 1 */
+QLabel, QComboBox, QComboBox::down-arrow, QSpinBox, QSpinBox::down-arrow, QSpinBox::up-arrow {padding : 2px;}
+
+/* Padding 2 */
+QPushButton, QPushButton:hover, QCheckBox {padding : 10px;}
+
+/* Gestion taille des QCheckBoxes */
+QCheckBox::indicator:unchecked, QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:checked, QCheckBox::indicator:checked:hover  {
+	width :30px;
+	height : 30px;
+}
+
+QLabel {
+	Border-radius : 5px;
+	border-width : 0px;
+	border-color : black;
+	font : 14pt &quot;Noto Sans Cond&quot;;
+}
+
+QPushButton:hover {background-color: rgb(243, 98, 64);}
+
+QCheckBox::indicator:unchecked {image: url(icons/uncheck_icon.png);}
+
+QCheckBox::indicator:unchecked:hover {image: url(icons/uncheck_hover_icon.png);}
+
+QCheckBox::indicator:checked {image: url(icons/Check_icon.png);}
+
+QCheckBox::indicator:checked:hover {image: url(icons/Check_hover_icon.png);}
+
+QComboBox::drop-down:button{
+	border-radius: 4px;
+	border-width: 3px;
+	width: 36px;
+}
+
+QComboBox::down-arrow {
+	image : url(icons/Arrow_down.png);
+    width: 26px;
+    height: 24px;
+}
+
+Line{
+	format: plain;
+	midLine-Width : 5px;
+}
+
+QFrame[height=&quot;3&quot;], QFrame[width=&quot;3&quot;] {background-color: #3A3939;}
+
+QTextEdit{
+	background-color: rgb(255, 255, 255);
+	border-style: solid;
+	border-radius: 5px;
+	border-width: 2px;
+	border-color: black;
+}
+
+QLineEdit {font : 12pt &quot;Noto Sans Cond&quot;;}
+
+/* Gestion taille des QLineEdit */
+QLineEdit::indicator:unchecked, QLineEdit::indicator:unchecked:hover, QLineEdit::indicator:checked, QLineEdit::indicator:checked:hover  {
+	border-color: black;
+}
+
+QHBoxLayout {background-color: rgb(0, 240, 240, 50);}
+
+QProgressBar {
+	text-align: center;
+	border: 2px solid black;
+	border-radius: 3px;
+ }
+
+ QProgressBar::chunk {
+	background-color: rgb(243, 98, 64);
+	width: 20px;
+	margin : 0.5px;
+ }
+
+QSpinBox::drop-down:button, QSpinBox::drop-up:button {
+	border-radius: 2px;
+	border-width: 3px;
+	width: 36px;
+}
+
+QSpinBox::down-arrow {
+	image : url(icons/Arrow_down.png);
+    width: 26px;
+    height: 24px;
+}
+
+QSpinBox::up-arrow {
+	image : url(icons/Arrow_up.png);
+    width: 26px;
+    height: 24px;
+}
+
+QSlider::groove:horizontal {
+    border: 1px solid #999999;
+    height: 5px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
+    background-color: rgb(0, 0, 0);
+    margin: 2px 0;
+}
+
+QSlider::handle:horizontal {
+    border: 1px solid #5c5c5c;
+    width: 25px;
+    height: 40px;
+    margin: -10px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+    border-radius: 3px;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="ImageView" name="expSeries" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="PlotWidget" name="profiles" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>600</width>
+            <height>150</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QCheckBox" name="denoised">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Denoised</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="mouseLock">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Mouse block</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_h">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+            </property>
+            <property name="text">
+             <string>Parameter h</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::PlainText</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="slider_h">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>5000</number>
+            </property>
+            <property name="singleStep">
+             <number>10</number>
+            </property>
+            <property name="pageStep">
+             <number>500</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_size">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+            </property>
+            <property name="text">
+             <string>Patch size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="slider_size">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>15</number>
+            </property>
+            <property name="pageStep">
+             <number>2</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_distance">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+            </property>
+            <property name="text">
+             <string>Patch distance</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="slider_distance">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <number>15</number>
+            </property>
+            <property name="pageStep">
+             <number>2</number>
+            </property>
+            <property name="value">
+             <number>6</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QPushButton" name="preview">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Run the computation&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Run</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QProgressBar" name="progressBar">
+            <property name="font">
+             <font>
+              <family>Noto Sans Cond</family>
+              <pointsize>12</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="Validate_button">
+          <property name="minimumSize">
+           <size>
+            <width>116</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Noto Sans Cond</family>
+            <pointsize>12</pointsize>
+            <weight>50</weight>
+            <italic>false</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Export data to the main GUI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Validate</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>TSG_icons/Export.png</normaloff>TSG_icons/Export.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>623</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageView</class>
+   <extends>QWidget</extends>
+   <header>pyqtgraph</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QWidget</extends>
+   <header>pyqtgraph</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
