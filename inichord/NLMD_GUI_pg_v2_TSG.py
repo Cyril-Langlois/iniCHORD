@@ -18,7 +18,7 @@ from PyQt5 import QtWidgets
 
 from PyQt5.QtWidgets import QApplication
 
-from LibrairiesCyril import general_functions as gf
+import general_functions as gf
 
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)

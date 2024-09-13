@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from scipy import ndimage
 from scipy import fftpack, signal
-from LibrairiesCyril import general_functions as gf
+import general_functions as gf
 import scipy.io.wavfile
 import scipy.signal
 # import cupy as cp
@@ -32,10 +32,7 @@ def cyclic(a, axProf):
         print("le tableau d'entrée doit être en 2D et l'axe = 0 ou 1")
         quit()
     
-    if gf.isCupy(a):
-        arr = cp.concatenate((a, b), axis = axProf)
-    else:
-        arr = np.concatenate((a, b), axis = axProf)
+    arr = np.concatenate((a, b), axis = axProf)
     return arr
 
 def fft_profil(arr2, axProf): # Useless 
@@ -44,10 +41,7 @@ def fft_profil(arr2, axProf): # Useless
     return Var_fft 
 
 def derivee(a, nbderiv, ax = 1):
-    if gf.isCupy(a):
-        return cp.diff(a, nbderiv, axis = ax)
-    else:
-        return np.diff(a, nbderiv, axis = ax)
+    return np.diff(a, nbderiv, axis = ax)
 
 def reshapeProfilesInLine(profiles, size):
     lines = int(profiles.size / size)
@@ -90,12 +84,8 @@ def downSampleProfiles(profiles, step):
             return profiles 
 
 def normMatProfiles(matrix, ax = 1):
-    if gf.isCupy(matrix):
-        norm = cp.linalg.norm(matrix, axis = ax, keepdims=True)
-        return matrix / norm
-    else:
-        norm = np.linalg.norm(matrix, axis = ax, keepdims=True)
-        return matrix / norm
+    norm = np.linalg.norm(matrix, axis = ax, keepdims=True)
+    return matrix / norm
 
 def centeredEuclidianNorm(prof, ax = 1):
     '''

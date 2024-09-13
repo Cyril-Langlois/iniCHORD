@@ -15,7 +15,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-from LibrairiesCyril import general_functions as gf
+import general_functions as gf
 
 from skimage import morphology, filters, exposure
 from skimage.measure import label, regionprops
