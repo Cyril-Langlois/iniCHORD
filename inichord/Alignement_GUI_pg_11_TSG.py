@@ -15,7 +15,7 @@ from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-import general_functions as gf
+from . import general_functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Aligned_pg_ui_12_TSG.ui")

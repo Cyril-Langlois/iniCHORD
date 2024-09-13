@@ -21,7 +21,7 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-import general_functions as gf
+from . import general_functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi

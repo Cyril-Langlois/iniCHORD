@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QApplication,QMessageBox
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QPixmap
 
-import general_functions as gf
+from . import general_functions as gf
 
 from skimage import morphology, filters, exposure
 from scipy import ndimage as ndi
