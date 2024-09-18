@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inichord"
-version = "0.1.2"
+version = "0.1.4"
 description = "image series treatment tools"
 authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]
 license = "CeCILL"
@@ -8,7 +8,19 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
-
+numpy = "^1.23"
+scipy = "^1.14"
+pystackreg = "^0.2"
+largestinteriorrectangle = "^0.2"
+pyvsnr = { git = "https://github.com/CEA-MetroCarac/pyvsnr.git"}
+bm3d = "*"
+matplotlib = "^3.9"
+scikit-learn = "^1.5"
+opencv-python = "^4.10"
+h5py = "^3.11"
+pyqt5 = "^5.15"
+pyqtgraph = "^0.13"
+scikit-image = "^0.24"
 
 [build-system]
 requires = ["poetry-core"]
