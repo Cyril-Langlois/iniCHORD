@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 22 23:26:20 2023
+Created on Sun Nov 26 17:31:45 2023
 
 @author: clanglois1
 """
+
 import os
 from os.path import abspath
-from scipy import fftpack
 
 from inspect import getsourcefile
 import numpy as np
@@ -15,37 +15,32 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
+from LibrairiesCyril import general_functions as gf
+
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/RemovedFFT_v2_TSG.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/VSNR_v2_TSG.ui")
 
 class MainWindow(uiclass, baseclass):
-
     def __init__(self, parent):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
         
-        self.setWindowIcon(QtGui.QIcon('icons/background_icon.png'))
-                
-        self.expStack = parent.Current_stack
-        self.filtered_Stack = np.copy(parent.Current_stack)
+        self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png'))   
         
-        self.img_number = len(self.expStack)
-        self.stack_height = len(self.expStack[0])
-        self.stack_width = len(self.expStack[0][0])
-        self.img_step = int(360/len(self.expStack[:,]))
+        self.expStack = parent.Current_stack
+        self.denoised_Stack = np.copy(parent.Current_stack)
 
         self.x = 0
         self.y = 0
         
-        self.fft = 1
+        self.noise = self.slider_noise.value() / 100.0
+        self.label_noise.setText("Noise level: " + str(self.noise))
         
-        self.label_fft.setText("FFT Order: " + str(self.fft))
-        
-        if self.filtered.isChecked():
-            self.filtered.toggle()
+        if self.denoised.isChecked():
+            self.denoised.toggle()
             
-        self.filtered.setCheckable(False)
+        self.denoised.setCheckable(False)
 
         self.crosshair_v1= pg.InfiniteLine(angle=90, movable=False, pen=self.parent.color5)
         self.crosshair_h1 = pg.InfiniteLine(angle=0, movable=False, pen=self.parent.color5)
@@ -56,18 +51,22 @@ class MainWindow(uiclass, baseclass):
         self.proxy1 = pg.SignalProxy(self.expSeries.scene.sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
         self.proxy4 = pg.SignalProxy(self.expSeries.ui.graphicsView.scene().sigMouseClicked, rateLimit=60, slot=self.mouseClick)
         
-        self.slider_fft.valueChanged.connect(self.fft_changed)
+        self.slider_noise.sliderReleased.connect(self.noise_changed)
+       
         self.expSeries.timeLine.sigPositionChanged.connect(self.drawCHORDprofiles)
-        self.preview.clicked.connect(self.FFTStack)
-        self.filtered.stateChanged.connect(self.drawCHORDprofiles)
-        
+        self.preview.clicked.connect(self.denoiseStack)
+        self.denoised.stateChanged.connect(self.drawCHORDprofiles)
+
         self.Validate_button.clicked.connect(self.validate)
+        self.mouseLock.setVisible(False)
         
+        self.img_number = len(self.expStack)
         self.prgbar = 0 # Outil pour la bar de progression
         self.progressBar.setValue(self.prgbar)
-        self.progressBar.setRange(0, self.stack_height-1)
-
-        self.displayExpStack(self.filtered_Stack)
+        self.progressBar.setRange(0, self.img_number-1)
+        
+        self.displayExpStack(self.expStack)
+        self.defaultdrawCHORDprofiles()
         
         app = QApplication.instance()
         screen = app.screenAt(self.pos())
@@ -77,73 +76,66 @@ class MainWindow(uiclass, baseclass):
         self.resize(int(geometry.width() * 0.7), int(geometry.height() * 0.6))
         self.screen = screen
         
-        self.defaultIV()
-        self.defaultdrawCHORDprofiles()
-        
-        self.Validate_button.setEnabled(False) # Validation button is disables 
+        self.Validate_button.setEnabled(True)
 
 #%% Functions
-    def fft_changed(self): # Extract FFT order to be considered
-        self.fft = self.slider_fft.value()
-        self.label_fft.setText("FFT Order: " + str(self.fft))
+    def noise_changed(self):
+        self.noise = self.slider_noise.value() / 100.0            
+        self.label_noise.setText("Noise level: " + str(self.noise))
+        self.denoiseSlice()
+    
+    def denoiseSlice(self):
+        filter_ = [{'name':'Dirac', 'noise_level':self.noise}]  
 
-    def FFTStack(self): # Apply background remover
-        self.filtered.setEnabled(False)
+        self.denoised_Stack[0, :, :] = gf.VSNR_funct(self.expStack[0, :, :], filter_)
+        self.displayExpStack(self.denoised_Stack)
+        self.denoised.setEnabled(False)
+
+    def denoiseStack(self):
+        self.denoised.setEnabled(False)
         self.preview.setEnabled(False)
         
-        stack_reshape = np.moveaxis(self.expStack, 0, 2)
-
-        stack_filtered = np.zeros((self.stack_height, self.stack_width, self.img_number))
-
-        for x in range(self.stack_height):
-            
-            QApplication.processEvents()    
-            self.ValSlice = x
-            self.progression_bar()
-            
-            for y in range(self.stack_width):
-                sig  = stack_reshape[x,y]
-                sample_freq = fftpack.fftfreq(sig.size, d=self.img_step/360)
-                sig_fft = fftpack.fft(sig)
-
-                low_freq_fft = sig_fft.copy()
-                high_freq_fft = sig_fft.copy()
-
-                low_freq_fft[np.abs(sample_freq) <= self.fft] = 0
-                high_freq_fft[np.abs(sample_freq) > self.fft] = 0
-
-                signal_filtered = fftpack.ifft(low_freq_fft)
-                stack_filtered[x,y] = np.real(signal_filtered)
-
-        stack_filtered = np.moveaxis(stack_filtered, -1, 0)
-        stack_filtered = np.asarray(stack_filtered, dtype=np.float32)
+        filter_ = [{'name':'Dirac', 'noise_level':self.noise}] 
         
-        self.filtered_Stack = stack_filtered
-    
-        self.displayExpStack(self.filtered_Stack)
-        self.drawCHORDprofiles()                
+        for i in range(0,len(self.expStack[:, 0, 0])): # Apply parameter on each slice
+            self.denoised_Stack[i, :, :] = gf.VSNR_funct(self.expStack[i, :, :], filter_)
 
-        self.filtered.setEnabled(True)         
-        self.filtered.setCheckable(True)
-        self.filtered.setChecked(True)
+            QApplication.processEvents()    
+            self.ValSlice = i
+            self.progression_bar()
+                
+        self.denoised.setCheckable(True)
+        self.denoised.setEnabled(True)  
+        self.denoised.setChecked(True)
         self.preview.setEnabled(True)
-        self.Validate_button.setEnabled(True) # Validation button is enables 
+        self.Validate_button.setEnabled(True)
+        
+        self.displayExpStack(self.denoised_Stack)
         
     def validate(self):
-        self.parent.Current_stack = np.copy(self.filtered_Stack)
-        self.parent.StackList.append(self.filtered_Stack)
-
-        Combo_text = '\u2022 Background substraction. FFT order : ' + str(self.fft)
-        Combo_data = self.filtered_Stack
+        self.parent.Current_stack = np.copy(self.denoised_Stack)
+        self.parent.StackList.append(self.denoised_Stack)
+        
+        Combo_text = '\u2022 Manual VSNR denoising. Alpha parameter : ' + str(self.noise) + '. Mode : Dirac'
+        Combo_data = self.denoised_Stack
         self.parent.choiceBox.addItem(Combo_text, Combo_data)
 
         self.parent.displayExpStack(self.parent.Current_stack)
+
+        self.drawCHORDprofiles()        
         
         self.parent.Info_box.ensureCursorVisible()
-        self.parent.Info_box.insertPlainText("\n \u2022 Background substraction is achieved.")
+        self.parent.Info_box.insertPlainText("\n \u2022 VSNR denoising is achieved.")
         
         self.close()
-   
+
+    def defaultdrawCHORDprofiles(self):
+        self.profiles.clear()
+        self.profiles.setBackground(self.parent.color2)
+        
+        self.profiles.getPlotItem().hideAxis('bottom')
+        self.profiles.getPlotItem().hideAxis('left')
+         
     def drawCHORDprofiles(self):
         try:
             self.profiles.clear()
@@ -153,7 +145,7 @@ class MainWindow(uiclass, baseclass):
             self.legend = self.profiles.addLegend(horSpacing = 30, labelTextSize = '10pt', colCount = 1, labelTextColor = 'black', brush = self.parent.color6, pen = pg.mkPen(color=(0, 0, 0), width=1))
             
             pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile
-            self.profiles.plot(self.expStack[:, self.x, self.y], pen=pen, name='Before FFT') # Plot of the profile
+            self.profiles.plot(self.expStack[:, self.x, self.y], pen=pen, name='Undenoised') # Plot of the profile
             
             styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles.setLabel("left", "Grayscale value", **styles) # Import style for Y label
@@ -172,17 +164,17 @@ class MainWindow(uiclass, baseclass):
             self.profiles.setBackground(self.parent.color2)
             self.profiles.showGrid(x=True, y=True)
             
-            if self.filtered.isChecked():
+            if self.denoised.isChecked():
                 pen2 = pg.mkPen(color=self.parent.color5, width=5) # Color and line width of the profile
 
-                self.profiles.plot(self.filtered_Stack[:, self.x, self.y], pen=pen2, name='After FFT')
+                self.profiles.plot(self.denoised_Stack[:, self.x, self.y], pen=pen2, name='Denoised')
         except:
             pass
 
     def progression_bar(self): # Fonction relative à la barre de progression
         self.prgbar = self.ValSlice
         self.progressBar.setValue(self.prgbar)
-
+        
     def displayExpStack(self, Series):
         self.expSeries.ui.histogram.hide()
         self.expSeries.ui.roiBtn.hide()
@@ -212,25 +204,7 @@ class MainWindow(uiclass, baseclass):
         s.handle(1).setEnabled(True)
         s.setStyleSheet("background: 5px white;")
         s.setHandleWidth(5) 
-
-    def defaultIV(self):
-        self.expSeries.ui.histogram.hide()
-        self.expSeries.ui.roiBtn.hide()
-        self.expSeries.ui.menuBtn.hide()
         
-        view = self.expSeries.getView()
-        view.setBackgroundColor(self.parent.color1)
-        
-        ROIplot = self.expSeries.getRoiPlot()
-        ROIplot.setBackground(self.parent.color1)
-    
-    def defaultdrawCHORDprofiles(self):
-        self.profiles.clear()
-        self.profiles.setBackground(self.parent.color2)
-        
-        self.profiles.getPlotItem().hideAxis('bottom')
-        self.profiles.getPlotItem().hideAxis('left')
-
     def mouseMoved(self, e):
         pos = e[0]
 
@@ -262,15 +236,15 @@ class MainWindow(uiclass, baseclass):
         posQpoint.setY(fromPosY)
 
         if self.expSeries.view.sceneBoundingRect().contains(posQpoint):
-                
+
             item = self.expSeries.view
             mousePoint = item.mapSceneToView(posQpoint) 
 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
-                 
+ 
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())
-            
+
         if self.x >= 0 and self.y >= 0 and self.x < len(self.expStack[0, :, 0])and self.y < len(self.expStack[0, 0, :]):
             self.drawCHORDprofiles()

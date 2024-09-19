@@ -21,7 +21,7 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-from . import general_functions as gf
+from LibrairiesCyril import general_functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi
@@ -71,7 +71,7 @@ class MainWindow(uiclass, baseclass):
         self.val_tresh = self.Tresh_spinBox.value()
         self.Tresh_spinBox.valueChanged.connect(self.Change_treshold)
         
-        self.Range_Edit.setText("300")
+        self.Range_Edit.setText("0")
         self.changeRange() # Modify the searching range 
         self.Range_Edit.editingFinished.connect(self.changeRange) # Modify the searching range 
         
@@ -145,6 +145,15 @@ class MainWindow(uiclass, baseclass):
             self.Tresh_spinBox.setEnabled(True)
             self.full_range.setEnabled(True)
             self.ComputeClass_bttn.setEnabled(True)
+            
+        range_step = []
+        for i in range(0,len(self.KAD_base)):
+            range_step.append(np.mean(self.KAD_base[i].shape[1]))
+
+        auto_val_range = int(np.round(np.mean(range_step)*0.3)) # 30% of the mean dimensions of images
+
+        self.Range_Edit.setText(str(auto_val_range))
+        self.val_range = auto_val_range
         
     def set_up(self):
         # Here, nbr of column and nbr of raw are defined. self.Super_listing is create.
@@ -186,7 +195,7 @@ class MainWindow(uiclass, baseclass):
             self.flag_affine = False
             self.flag_homo = True
             
-    def Stitching(self): # Stitch images together
+    def Stitching(self): # Stitch images together   
         self.transfo_choice = self.Transfo_box.currentText() # Extract transformation choice
         self.make_transfo_choice() # Define which transformation must be used
         
@@ -271,8 +280,6 @@ class MainWindow(uiclass, baseclass):
         # Allow to specifiy if the descriptor determination must be apply on the whole images or only a part of it
         if self.full_range.isChecked():
             self.val_range = len(data2[0])
-        else :
-            self.val_range = self.val_range
 
         # create a mask image filled with zeros, the size of original image
         mask = np.zeros(data1.shape[:2], dtype=np.uint8)
@@ -362,7 +369,7 @@ class MainWindow(uiclass, baseclass):
         return Mask
     
     def changeRange(self): # Take into account the searching range modification
-        self.val_range = int(self.Range_Edit.text())
+        self.val_range = self.Range_Edit.text()
         self.full_range.setChecked(False)
         
     def Change_treshold(self): # Take into account the descriptor filtering threshold

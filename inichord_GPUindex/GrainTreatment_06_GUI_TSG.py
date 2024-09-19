@@ -15,7 +15,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-from . import general_functions as gf
+from LibrairiesCyril import general_functions as gf
 
 from skimage import morphology, filters, exposure
 from skimage.measure import label, regionprops
@@ -23,7 +23,7 @@ from skimage.segmentation import expand_labels
 from scipy import ndimage as ndi
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/GrainTreatment_v4_TSG.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/GrainTreatment_v5_TSG.ui")
 
 class MainWindow(uiclass, baseclass):
     def __init__(self, parent):
@@ -82,19 +82,23 @@ class MainWindow(uiclass, baseclass):
         self.Save_bttn.clicked.connect(self.Save_results) # Saving process (processing steps, results, infos)
         self.Full_Run_bttn.clicked.connect(self.FullRun) # Run all parameters as defined in the GUI
         self.Push_validate.clicked.connect(self.validate_data)
-        
-        self.PixelSize_edit.setText("Add a pixel size here (µm).")
+        self.Grainsize_bttn.clicked.connect(self.labels_computation)
+                
+        self.PixelSize_edit.setText("Add a pixel size (µm).")
         self.PixelSize_edit.editingFinished.connect(self.changeText) # Take into account the pixel size
         
         self.PresetBox.currentTextChanged.connect(self.auto_set) # Allow different pre-set to be used for computation
         self.spinBox_filter.valueChanged.connect(self.Filter_changed) # Change KAD initial filtering
+        self.Den_spinbox.valueChanged.connect(self.denoise_labels) # Change denoising value of the labels
         self.Filter_labelBox.valueChanged.connect(self.Filter_labels) # To exclude small grains
         self.ChoiceBox.currentTextChanged.connect(self.ViewLabeling) # Change displayed map
+        
+        self.Grainsize_bttn.setEnabled(False)
         
         self.label_filterdiameter.setText("Exclude \u2300 < x(pxls)")
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
-        self.progressBar.setVisible(False)
+        self.mouseLock.setVisible(False)
         
         # Icons sizes management for QMessageBox
         self.pixmap = QPixmap("icons/Grain_Icons.png")
@@ -161,7 +165,7 @@ class MainWindow(uiclass, baseclass):
         self.Preset_choice = self.PresetBox.currentText()
 
         if self.Preset_choice == "Undeformed sample":
-            self.spinBox_filter.setValue(0.01)
+            self.spinBox_filter.setValue(0.005)
             self.ClassBox.setValue(4)
             self.ThresholdBox.setValue(1)
 
@@ -198,7 +202,7 @@ class MainWindow(uiclass, baseclass):
             msg.setWindowIcon(QtGui.QIcon('icons/Grain_Icons.png'))
             msg.exec_()
             
-            self.spinBox_filter.setValue(0.01)
+            self.spinBox_filter.setValue(0.005)
             self.ClassBox.setValue(3)
             self.ThresholdBox.setValue(1)
 
@@ -267,46 +271,20 @@ class MainWindow(uiclass, baseclass):
     def Grain_labeling(self):
         self.label_img = label(self.binary_regions, connectivity=2) # Labeling of the thresholded map
         self.d = np.zeros(np.amax(self.label_img) + 1) # Array of 0 value to store the area of grains
+    
+        self.flag_DenLabels = False
+        self.labels_computation()
         
-        # Path with label denoising
-        if self.Denoised_CheckBox.isChecked():
-            self.flag_DenLabels = True
-            self.denoise_labels()
-            self.labels_computation()
-        # Path without label denoising
-        else:
-            self.flag_DenLabels = False
-            self.labels_computation()
+        self.Grainsize_bttn.setEnabled(True)
         
     def denoise_labels(self): # Fill labels with holes inside
-        self.prgbar = 0 # Progress bar initial value
-        self.progressBar.setValue(self.prgbar)
-        self.progressBar.setRange(0, np.max(self.label_img)-1)
+        # Expansion of labels ==> Get rid of grains boundaries and dust or holes
+        distance_val = self.Den_spinbox.value()
         
-        self.progressBar.setVisible(True)
-        self.label_img_refined = np.zeros((len(self.label_img),len(self.label_img[0])))
-            
-        for i in range(np.max(self.label_img)):
-            label_img_tempo = np.zeros((len(self.label_img),len(self.label_img[0])))
+        self.flag_DenLabels = True
+        self.label_img_refined = expand_labels(self.label_img, distance=distance_val)
         
-            i=i+1
-        
-            QApplication.processEvents()    
-            self.ValSlice = i
-            self.progression_bar()
-            
-            var = np.where(self.label_img == i)
-            label_img_tempo[var] = 1
-            label_img_tempo2 = ndi.binary_fill_holes(label_img_tempo).astype("bool") # Fill holes processing
-            label_img_tempo3 = np.where(label_img_tempo2 == 1)
-        
-            self.label_img_refined[label_img_tempo3] = i 
-        
-        self.progressBar.setVisible(False)
-
-    def progression_bar(self): # Fonction relative à la barre de progression
-        self.prgbar = self.ValSlice
-        self.progressBar.setValue(self.prgbar)
+        self.displaylabels(self.label_img_refined) # Display the labeled image
 
     def labels_computation(self):
         # Computation of equivalent diameters

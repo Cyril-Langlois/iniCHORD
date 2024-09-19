@@ -21,7 +21,7 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-from . import general_functions as gf
+from LibrairiesCyril import general_functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi
@@ -68,7 +68,7 @@ class MainWindow(uiclass, baseclass):
         self.val_tresh = self.Tresh_spinBox.value()
         self.Tresh_spinBox.valueChanged.connect(self.Change_treshold)
         
-        self.Range_Edit.setText("300")
+        self.Range_Edit.setText("0")
         self.changeRange() # Modify the searching range 
         self.Range_Edit.editingFinished.connect(self.changeRange) # Modify the searching range 
         
@@ -165,6 +165,15 @@ class MainWindow(uiclass, baseclass):
             self.Tresh_spinBox.setEnabled(True)
             self.full_range.setEnabled(True)
             self.ComputeClass_bttn.setEnabled(True)
+            
+        range_step = []
+        for i in range(0,len(self.Base_KAD)):
+            range_step.append(np.mean(self.Base_KAD[i].shape[1]))
+
+        auto_val_range = int(np.round(np.mean(range_step)*0.3)) # 30% of the mean dimensions of images
+
+        self.Range_Edit.setText(str(auto_val_range))
+        self.val_range = auto_val_range
         
     def set_up(self):
         # Here, nbr of column and nbr of raw are defined. self.Super_BSE and self.Super_KAD are created.
@@ -232,6 +241,8 @@ class MainWindow(uiclass, baseclass):
         self.res = []
         self.M_hori = []
         self.M_verti = []
+        self.Sel1=[]
+        self.Sel2=[]
         
         self.nbr = self.col_nbr * self.row_nbr # Nbr of total 2D array
         
@@ -262,7 +273,8 @@ class MainWindow(uiclass, baseclass):
                     j = len(self.Super_KAD[i])-1
                     
                     # The twoD stitching is cropped
-                    self.cropped_dst = self.cropping_step(dst)
+                    self.cropped_dst,selection = self.cropping_step(dst)
+                    self.Sel1.append(selection) 
                     
                 # The twoD stitching is stored to be used after 
                 self.res.append(self.cropped_dst)
@@ -292,7 +304,8 @@ class MainWindow(uiclass, baseclass):
                 i = len(self.res[i])-1
                 
                 # The twoD stitching is cropped
-                self.cropped_dst = self.cropping_step(dst)
+                self.cropped_dst,selection = self.cropping_step(dst)
+                self.Sel2.append(selection)
          
         # Apply flip and rotation for display of the stitched 2D arrays
         self.displayed_dst = np.copy(self.cropped_dst)
@@ -307,8 +320,6 @@ class MainWindow(uiclass, baseclass):
         # Allow to specifiy if the descriptor determination must be apply on the whole images or only a part of it
         if self.full_range.isChecked():
             self.val_range = len(data2[0])
-        else :
-            self.val_range = self.val_range
 
         # create a mask image filled with zeros, the size of original image
         mask = np.zeros(data1.shape[:2], dtype=np.uint8)
@@ -390,7 +401,7 @@ class MainWindow(uiclass, baseclass):
         Selection = lir.lir(Min_Aligned_stack) # array([2, 2, 4, 7])
         Cropped_dst = dst[Selection[1]:Selection[3],Selection[0]:Selection[2]]  
         
-        return Cropped_dst
+        return Cropped_dst, Selection
     
     def apply_transformation(self): # Apply the transformation matrices on the 3D array sequence
         self.res_serie = []
@@ -420,6 +431,8 @@ class MainWindow(uiclass, baseclass):
                         
                         dst[0:data2.shape[0],0:data2.shape[1]] = data2
                         
+                        cropped_dst = dst[self.Sel1[k][1]:self.Sel1[k][3],self.Sel1[k][0]:self.Sel1[k][2]]
+                        
                         k = k+1 # Count is increased
                         data1 = dst
                         
@@ -428,7 +441,7 @@ class MainWindow(uiclass, baseclass):
                         self.ValSlice = self.increment
                         self.progression_bar()
                         
-                    self.tempo_res.append(dst)
+                    self.tempo_res.append(cropped_dst)
             else :
                 self.X = self.Super_BSE.copy()
                             
@@ -453,6 +466,8 @@ class MainWindow(uiclass, baseclass):
                     dst = cv2.warpPerspective(data1,self.M_verti[k],(data2.shape[1] + data1.shape[1], data2.shape[0] + data1.shape[0]))
                     dst[0:data2.shape[0],0:data2.shape[1]] = data2
                 
+                cropped_dst = dst[self.Sel2[k][1]:self.Sel2[k][3],self.Sel2[k][0]:self.Sel2[k][2]]
+                
                 k = k+1 # Count is increased
                 
                 data1 = dst
@@ -462,25 +477,27 @@ class MainWindow(uiclass, baseclass):
                 self.ValSlice = self.increment
                 self.progression_bar()
             
-            self.res_serie.append(dst)
+            self.res_serie.append(cropped_dst)
   
         # Specific cropping step 
-        self.res_serie_min = np.min(self.res_serie,0)
-        Mask = np.zeros((len(self.res_serie_min),len(self.res_serie_min[0])))
-        Mask[self.res_serie_min > 0] = 1
+        # self.res_serie_min = np.min(self.res_serie,0)
+        # Mask = np.zeros((len(self.res_serie_min),len(self.res_serie_min[0])))
+        # Mask[self.res_serie_min > 0] = 1
         
-        Min_Aligned_stack = Mask.astype("bool")
-        Min_Aligned_stack = ndi.binary_fill_holes(Mask).astype("bool")
+        # Min_Aligned_stack = Mask.astype("bool")
+        # Min_Aligned_stack = ndi.binary_fill_holes(Mask).astype("bool")
     
-        Selection = lir.lir(Min_Aligned_stack) # array([2, 2, 4, 7])
-        self.res_serie_cropped = []
+        # Selection = lir.lir(Min_Aligned_stack) # array([2, 2, 4, 7])
+        # self.res_serie_cropped = []
         
-        for i in range(0,len(self.res_serie)):
-            var = self.res_serie[i]
-            var = var[Selection[1]:Selection[3],Selection[0]:Selection[2]]  
+        # for i in range(0,len(self.res_serie)):
+        #     var = self.res_serie[i]
+        #     var = var[Selection[1]:Selection[3],Selection[0]:Selection[2]]  
             
-            self.res_serie_cropped.append(var)
-                    
+        #     self.res_serie_cropped.append(var)
+        
+        self.res_serie_cropped = np.copy(self.res_serie)
+        
         self.displayed_res_serie = np.copy(self.res_serie_cropped)
         self.displayed_res_serie = np.flip(self.displayed_res_serie, 1)
         self.displayed_res_serie = np.rot90(self.displayed_res_serie, k=1, axes=(2, 1))
@@ -488,7 +505,7 @@ class MainWindow(uiclass, baseclass):
         self.displaySeriesStitch(self.displayed_res_serie)
     
     def changeRange(self): # Take into account the searching range modification
-        self.val_range = int(self.Range_Edit.text())
+        self.val_range = self.Range_Edit.text()
         self.full_range.setChecked(False)
         
     def Change_treshold(self): # Take into account the descriptor filtering threshold
@@ -513,6 +530,7 @@ class MainWindow(uiclass, baseclass):
         # Images saving step
         tf.imwrite(PathDir + '/Stitched_KAD.tiff', np.rot90(np.flip(self.displayed_dst, 0), k=1, axes=(1, 0)).astype('float32')) 
         tf.imwrite(PathDir + '/Stitched_serie.tiff', np.rot90(np.flip(self.displayed_res_serie, 1), k=1, axes=(2, 1)).astype('float32')) 
+        # tf.imwrite(PathDir + '/Stitched_KAD.tiff', np.rot90(np.flip(self.displayed_dst, 0), k=1, axes=(1, 0)).astype('float32')) 
 
         # Information (.TXT) step
         with open(PathDir + '\KAD and serie stitching.txt', 'w') as file:
@@ -547,6 +565,8 @@ class MainWindow(uiclass, baseclass):
         self.parent.Info_box.insertPlainText("\n \u2022 Stitched KAD map.") 
         
         # Stitched serie
+        self.parent.flag = False # For auto-denoising access
+        self.parent.flag_image = True # For GRDD - GDS
         self.parent.Current_stack = np.copy(self.displayed_res_serie) # Copy in the main GUI
         self.parent.image = np.copy(self.displayed_res_serie) # Copy for the GROD-GOS computation
         self.parent.StackList.append(self.displayed_res_serie) # Add the data in the stack list
@@ -564,9 +584,19 @@ class MainWindow(uiclass, baseclass):
         self.parent.Info_box.insertPlainText("\n \u2022 Stitched serie.")
              
         # Activation of buttons in the main GUI
+        self.parent.Edit_tools_button.setEnabled(True)
+        self.parent.Registration_button.setEnabled(True)
+        self.parent.Background_remover_button.setEnabled(True)
+        self.parent.Remove_outliers_button.setEnabled(True)
+        self.parent.Manual_denoising_button.setEnabled(True)
+        self.parent.Auto_denoising_button.setEnabled(True)
         self.parent.Save_button.setEnabled(True)
         self.parent.Reload_button.setEnabled(True)
+        self.parent.Choice_denoiser.setEnabled(True)
         self.parent.choiceBox.setEnabled(True)
+        
+        for i in range(0,3): # enables [Bleach correction ; STD map ; KAD map]
+            self.parent.Tool_choice.model().item(i).setEnabled(True)
         
         # Finished message
         self.parent.popup_message("3D stitching","Stitched KAD has been exported to the main GUI.",'icons/Stitch_icon.png')

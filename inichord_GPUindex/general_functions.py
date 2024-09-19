@@ -8,7 +8,7 @@ import numpy as np
 import math
 import tkinter as tk
 from tkinter import filedialog
-# import cupy as cp
+import cupy as cp
 import time
 from skimage.morphology import disk, ball
 import scipy.ndimage as sci

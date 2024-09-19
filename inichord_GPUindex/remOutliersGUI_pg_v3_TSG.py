@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Nov 26 17:31:45 2023
+Created on Wed Nov 22 23:26:20 2023
 
 @author: clanglois1
 """
-
 import os
 from os.path import abspath
 
@@ -15,10 +14,10 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from . import general_functions as gf
+from LibrairiesCyril import general_functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/VSNR_v2_TSG.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/remOutliers_v4_TSG.ui")
 
 class MainWindow(uiclass, baseclass):
     def __init__(self, parent):
@@ -26,16 +25,21 @@ class MainWindow(uiclass, baseclass):
         self.setupUi(self)
         self.parent = parent
         
-        self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png'))   
-        
+        self.setWindowIcon(QtGui.QIcon('icons/remove_outliers_icon.png'))
+                
         self.expStack = parent.Current_stack
         self.denoised_Stack = np.copy(parent.Current_stack)
-
+        
         self.x = 0
         self.y = 0
         
-        self.noise = self.slider_noise.value() / 100.0
-        self.label_noise.setText("Noise level: " + str(self.noise))
+        self.radius = 2
+        self.threshold = 10
+        
+        self.label_radius.setText("Radius: " + str(self.radius))
+        self.label_threshold.setText("Threshold: " + str(self.threshold))
+        
+        self.img_number = len(self.expStack)
         
         if self.denoised.isChecked():
             self.denoised.toggle()
@@ -51,21 +55,21 @@ class MainWindow(uiclass, baseclass):
         self.proxy1 = pg.SignalProxy(self.expSeries.scene.sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
         self.proxy4 = pg.SignalProxy(self.expSeries.ui.graphicsView.scene().sigMouseClicked, rateLimit=60, slot=self.mouseClick)
         
-        self.slider_noise.sliderReleased.connect(self.noise_changed)
-       
+        self.slider_threshold.valueChanged.connect(self.threshold_changed)
+        self.slider_radius.valueChanged.connect(self.radius_changed)
         self.expSeries.timeLine.sigPositionChanged.connect(self.drawCHORDprofiles)
-        self.preview.clicked.connect(self.denoiseStack)
+        self.preview.clicked.connect(self.remOutStack)
         self.denoised.stateChanged.connect(self.drawCHORDprofiles)
-
-        self.Validate_button.clicked.connect(self.validate)
         
-        self.img_number = len(self.expStack)
+        self.Validate_button.clicked.connect(self.validate)
+        self.mouseLock.setVisible(False)
+        
         self.prgbar = 0 # Outil pour la bar de progression
         self.progressBar.setValue(self.prgbar)
         self.progressBar.setRange(0, self.img_number-1)
         
-        self.displayExpStack(self.expStack)
-        self.defaultdrawCHORDprofiles()
+        self.remOutSlice()
+        self.displayExpStack(self.denoised_Stack)
         
         app = QApplication.instance()
         screen = app.screenAt(self.pos())
@@ -75,36 +79,42 @@ class MainWindow(uiclass, baseclass):
         self.resize(int(geometry.width() * 0.7), int(geometry.height() * 0.6))
         self.screen = screen
         
-        self.Validate_button.setEnabled(True)
+        self.defaultdrawCHORDprofiles()
+        self.Validate_button.setEnabled(False)
 
-#%% Functions
-    def noise_changed(self):
-        self.noise = self.slider_noise.value() / 100.0            
-        self.label_noise.setText("Noise level: " + str(self.noise))
-        self.denoiseSlice()
+#%% Functions 
+    def radius_changed(self):
+        self.radius = self.slider_radius.value()
+        self.label_radius.setText("Radius: " + str(self.radius))
+        self.remOutSlice()
     
-    def denoiseSlice(self):
-        filter_ = [{'name':'Dirac', 'noise_level':self.noise}]  
-
-        self.denoised_Stack[0, :, :] = gf.VSNR_funct(self.expStack[0, :, :], filter_)
+    def threshold_changed(self):
+        self.threshold = self.slider_threshold.value()
+        self.label_threshold.setText("Threshold: " + str(self.threshold))
+        self.remOutSlice()
+    
+    def remOutSlice(self):
+        dummy, a = gf.remove_outliers(self.expStack[0, :, :], self.radius, self.threshold)
+        
+        self.denoised_Stack[0, :, :] = a 
         self.displayExpStack(self.denoised_Stack)
         self.denoised.setEnabled(False)
 
-    def denoiseStack(self):
+    def remOutStack(self):
         self.denoised.setEnabled(False)
         self.preview.setEnabled(False)
         
-        filter_ = [{'name':'Dirac', 'noise_level':self.noise}] 
-        
-        for i in range(0,len(self.expStack[:, 0, 0])): # Apply parameter on each slice
-            self.denoised_Stack[i, :, :] = gf.VSNR_funct(self.expStack[i, :, :], filter_)
+        for i in range(0,len(self.expStack[:, 0, 0])): # Apply parameters on each slice
+            _, self.denoised_Stack[i, :, :] =  gf.remove_outliers(self.expStack[i,:,:], self.radius, self.threshold)
 
             QApplication.processEvents()    
             self.ValSlice = i
             self.progression_bar()
-                
+       
+        self.drawCHORDprofiles()                
+
+        self.denoised.setEnabled(True)         
         self.denoised.setCheckable(True)
-        self.denoised.setEnabled(True)  
         self.denoised.setChecked(True)
         self.preview.setEnabled(True)
         self.Validate_button.setEnabled(True)
@@ -115,26 +125,17 @@ class MainWindow(uiclass, baseclass):
         self.parent.Current_stack = np.copy(self.denoised_Stack)
         self.parent.StackList.append(self.denoised_Stack)
         
-        Combo_text = '\u2022 Manual VSNR denoising. Alpha parameter : ' + str(self.noise) + '. Mode : Dirac'
+        Combo_text = '\u2022 Outliers filtering. Radius : ' + str(self.radius) + ' ; Threshold : ' + str(self.threshold)
         Combo_data = self.denoised_Stack
         self.parent.choiceBox.addItem(Combo_text, Combo_data)
-
+        
         self.parent.displayExpStack(self.parent.Current_stack)
-
-        self.drawCHORDprofiles()        
         
         self.parent.Info_box.ensureCursorVisible()
-        self.parent.Info_box.insertPlainText("\n \u2022 VSNR denoising is achieved.")
+        self.parent.Info_box.insertPlainText("\n \u2022 Remove outliers is achieved.") 
         
         self.close()
 
-    def defaultdrawCHORDprofiles(self):
-        self.profiles.clear()
-        self.profiles.setBackground(self.parent.color2)
-        
-        self.profiles.getPlotItem().hideAxis('bottom')
-        self.profiles.getPlotItem().hideAxis('left')
-         
     def drawCHORDprofiles(self):
         try:
             self.profiles.clear()
@@ -144,7 +145,7 @@ class MainWindow(uiclass, baseclass):
             self.legend = self.profiles.addLegend(horSpacing = 30, labelTextSize = '10pt', colCount = 1, labelTextColor = 'black', brush = self.parent.color6, pen = pg.mkPen(color=(0, 0, 0), width=1))
             
             pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile
-            self.profiles.plot(self.expStack[:, self.x, self.y], pen=pen, name='Undenoised') # Plot of the profile
+            self.profiles.plot(self.expStack[:, self.x, self.y], pen=pen, name='Before remove') # Plot of the profile
             
             styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles.setLabel("left", "Grayscale value", **styles) # Import style for Y label
@@ -166,14 +167,21 @@ class MainWindow(uiclass, baseclass):
             if self.denoised.isChecked():
                 pen2 = pg.mkPen(color=self.parent.color5, width=5) # Color and line width of the profile
 
-                self.profiles.plot(self.denoised_Stack[:, self.x, self.y], pen=pen2, name='Denoised')
+                self.profiles.plot(self.denoised_Stack[:, self.x, self.y], pen=pen2, name='After remove')
         except:
             pass
+        
+    def defaultdrawCHORDprofiles(self):
+        self.profiles.clear()
+        self.profiles.setBackground(self.parent.color2)
+        
+        self.profiles.getPlotItem().hideAxis('bottom')
+        self.profiles.getPlotItem().hideAxis('left')
 
     def progression_bar(self): # Fonction relative à la barre de progression
         self.prgbar = self.ValSlice
         self.progressBar.setValue(self.prgbar)
-        
+
     def displayExpStack(self, Series):
         self.expSeries.ui.histogram.hide()
         self.expSeries.ui.roiBtn.hide()
@@ -203,7 +211,7 @@ class MainWindow(uiclass, baseclass):
         s.handle(1).setEnabled(True)
         s.setStyleSheet("background: 5px white;")
         s.setHandleWidth(5) 
-        
+
     def mouseMoved(self, e):
         pos = e[0]
 
@@ -235,15 +243,15 @@ class MainWindow(uiclass, baseclass):
         posQpoint.setY(fromPosY)
 
         if self.expSeries.view.sceneBoundingRect().contains(posQpoint):
-
+                
             item = self.expSeries.view
             mousePoint = item.mapSceneToView(posQpoint) 
 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
- 
+                 
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())
-
+            
         if self.x >= 0 and self.y >= 0 and self.x < len(self.expStack[0, :, 0])and self.y < len(self.expStack[0, 0, :]):
             self.drawCHORDprofiles()

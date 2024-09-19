@@ -14,7 +14,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from . import general_functions as gf
+from LibrairiesCyril import general_functions as gf
 from skimage.metrics import mean_squared_error as mse
 from skimage.restoration import denoise_tv_chambolle
 from skimage.metrics import structural_similarity as ssim
@@ -57,6 +57,7 @@ class MainWindow(uiclass, baseclass):
         self.Denoise_button.clicked.connect(self.AutoDenoisingStep)
         self.Denoise_button2.clicked.connect(self.StackDenoising)
         self.Validate_button.clicked.connect(self.ImportCurrentStack)
+        self.mouseLock.setVisible(False)
         
         self.x = 0
         self.y = 0
@@ -397,8 +398,8 @@ class MainWindow(uiclass, baseclass):
             
             pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile         
 
-            self.profiles.plot(self.SSIM, pen=pen) # Plot of the SSIM Index
-            self.profiles2.plot(self.MSE, pen=pen) # Plot of the MSE Index
+            self.profiles.plot(self.sigma_range,self.SSIM, pen=pen) # Plot of the SSIM Index
+            self.profiles2.plot(self.sigma_range,self.MSE, pen=pen) # Plot of the MSE Index
 
             styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles.setLabel("left", "SSIM value", **styles) # Import style for Y label

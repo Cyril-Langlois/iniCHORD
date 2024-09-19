@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "inichord"
+name = "inichord_GPUindex"
 version = "0.1.6"
 description = "image series treatment tools"
 authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]

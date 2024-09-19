@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QApplication,QMessageBox
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QPixmap
 
-from . import general_functions as gf
+from LibrairiesCyril import general_functions as gf
 
 from skimage import morphology, filters, exposure
 from scipy import ndimage as ndi
@@ -92,6 +92,7 @@ class MainWindow(uiclass, baseclass):
         self.ChoiceBox.currentTextChanged.connect(self.ViewLabeling) # Change the displayed map
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
+        self.mouseLock.setVisible(False)
         
         # Icons sizes management for QMessageBox
         self.pixmap = QPixmap("icons/Restored_Icons.png")
