@@ -14,7 +14,7 @@ from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from LibrairiesCyril import general_functions as gf
+from inichord_GPUindex import general_functions as gf
 import tifffile as tf
 import numpy as np
 import tkinter as tk

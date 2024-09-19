@@ -13,11 +13,11 @@ from inspect import getsourcefile
 import tifffile as tf
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
-from LibrairiesCyril import general_functions as gf # USED
+from inichord_GPUindex import general_functions as gf # USED
 import numpy as np
 from pyqtgraph.Qt import QtGui
 
-from LibrairiesCyril import general_functions as gf
+from inichord_GPUindex import general_functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Denoise_2Dmap_ui_01.ui")

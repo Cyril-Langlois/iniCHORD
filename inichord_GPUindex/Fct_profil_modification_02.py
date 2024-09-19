@@ -3,10 +3,10 @@ import sys
 import numpy as np
 from scipy import ndimage
 from scipy import fftpack, signal
-from LibrairiesCyril import general_functions as gf
+from inichord_GPUindex import general_functions as gf
 import scipy.io.wavfile
 import scipy.signal
-# import cupy as cp
+import cupy as cp
 
 def cyclic(a, axProf):
     '''

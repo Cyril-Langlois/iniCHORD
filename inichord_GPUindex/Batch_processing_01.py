@@ -17,12 +17,12 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from PyQt5.QtWidgets import QApplication
 
-from LibrairiesCyril import general_functions as gf # USED
-from LibrairiesCyril import Alignement_GUI_pg_11_TSG as align # USED
-from LibrairiesCyril import remFFT_pg_v2_TSG as RemFFT # USED
-from LibrairiesCyril import remOutliersGUI_pg_v3_TSG as rO # USED
-from LibrairiesCyril import Denoise_GUI_pg_03_TSG as autoden # USED
-from LibrairiesCyril import KAD_function_02 as KADfunc # USED
+from inichord_GPUindex import general_functions as gf # USED
+from inichord_GPUindex import Alignement_GUI_pg_11_TSG as align # USED
+from inichord_GPUindex import remFFT_pg_v2_TSG as RemFFT # USED
+from inichord_GPUindex import remOutliersGUI_pg_v3_TSG as rO # USED
+from inichord_GPUindex import Denoise_GUI_pg_03_TSG as autoden # USED
+from inichord_GPUindex import KAD_function_02 as KADfunc # USED
 
 import tkinter as tk
 from tkinter import filedialog

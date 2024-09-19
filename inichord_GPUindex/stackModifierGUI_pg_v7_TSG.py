@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore, QtGui
 from scipy import ndimage
 
-from LibrairiesCyril import general_functions as gf
+from inichord_GPUindex import general_functions as gf
 from scipy.fft import fft2, ifft2, fftshift
 
 path2thisFile = abspath(getsourcefile(lambda:0))

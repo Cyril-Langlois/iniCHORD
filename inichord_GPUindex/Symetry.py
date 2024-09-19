@@ -16,7 +16,7 @@ cwd = os.getcwd()
 # sys.path.insert(0, LibPath)
 
 
-from LibrairiesCyril import Xallo as xa
+from inichord_GPUindex import Xallo as xa
 
 import numpy as np
 from pyquaternion import Quaternion
