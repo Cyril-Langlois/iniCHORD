@@ -21,6 +21,10 @@ h5py = "^3.11"
 pyqt5 = "^5.15"
 pyqtgraph = "^0.13"
 scikit-image = "^0.24"
+cupy-cuda12x = "*"
+orix = "^0.11"
+Dans-Diffraction = "^3.2"
+pyquaternion = "^0.9"
 
 [build-system]
 requires = ["poetry-core"]
