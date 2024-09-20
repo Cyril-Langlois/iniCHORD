@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inichord_GPUindex"
-version = "0.1.7"
+version = "0.1.10"
 description = "image series treatment tools"
 authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]
 license = "CeCILL"
