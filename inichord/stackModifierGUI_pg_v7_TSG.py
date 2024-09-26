@@ -13,10 +13,11 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore, QtGui
 from scipy import ndimage
 
-from PyQt5.QtWidgets import QMessageBox
+from inichord import general_functions as gf
+from scipy.fft import fft2, ifft2, fftshift
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/stackModifier_v7_TSG.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/stackModifier_v9_TSG.ui")
 
 class MainWindow(uiclass, baseclass):
     def __init__(self, parent):
@@ -64,6 +65,8 @@ class MainWindow(uiclass, baseclass):
         self.step_spinBox.valueChanged.connect(self.modifySliceKeeper)
         self.validate_bttn.clicked.connect(self.validate_modified_Stack)
         self.Del_bttn.clicked.connect(self.delete_slice)
+        self.Replace_bttn.clicked.connect(self.replace_slice)
+        self.Erroneous_bttn.clicked.connect(self.image_correction)
         
         self.setWindowIcon(QtGui.QIcon('icons/crop_icon.png'))
         
@@ -118,6 +121,65 @@ class MainWindow(uiclass, baseclass):
         self.nbSlice_spinBox.setRange(1, self.nSlices) # Modificiation of the dispatcher
         
         self.displayExpStack(self.expStack)
+        
+    def replace_slice(self): 
+        indexes = self.expSeries.currentIndex # Index of the slice to delete (current view)
+
+        if indexes > 0: # Remplacer le tableau 2D à l'indice 'i' par le tableau 2D de l'indice 'i-1'
+            self.expStack[indexes] = self.expStack[indexes - 1]
+        elif indexes == 0:
+            [indexes] = self.expStack[indexes + 1]
+            
+        self.displayExpStack(self.expStack)
+        
+    def image_correction(self):
+        self.Threshold_value = self.Threshold_2.value()
+
+        distance = []
+    
+        # Comparer chaque image avec l'image de référence
+        for j in range(0, self.expStack.shape[0]):
+            if j == 0:
+                image_reference = self.expStack[j]
+            else:
+                image_reference = self.expStack[j-1]
+                
+            decalage = self.Compute_shift(image_reference, self.expStack[j])
+            distance_decalage = np.linalg.norm(decalage)
+            
+            distance.append(distance_decalage)
+    
+        index = np.hstack(distance)
+        index = index < self.Threshold_value
+        
+        # Parcourir l'array pour trouver les paires de 'False'
+        for k in range(len(index) - 1):
+            # Vérifier si deux éléments consécutifs sont 'False'
+            if index[k] == False and index[k + 1] == False:       
+                self.expStack[k] = self.expStack[k - 1]
+    
+        self.displayExpStack(self.expStack)
+        
+    def Compute_shift(self,image1, image2):
+        # Calculer la transformation de Fourier des deux images
+        image1 = gf.convertToUint8(image1)
+        image2 = gf.convertToUint8(image2)
+        
+        f_image1 = fft2(image1)
+        f_image2 = fft2(image2)
+
+        # Calculer la corrélation croisée en utilisant le produit conjugué
+        produit_conjugue = f_image1 * np.conj(f_image2)
+        cross_correlation = fftshift(ifft2(produit_conjugue))
+
+        # Trouver le pic de la corrélation croisée pour déterminer le décalage
+        decalage = np.unravel_index(np.argmax(np.abs(cross_correlation)), cross_correlation.shape)
+
+        # Calculer le décalage relatif à partir du centre
+        centre = np.array(image1.shape) // 2
+        decalage = np.array(decalage) - centre
+
+        return decalage
 
     def validate_modified_Stack(self):
         indStartX = self.ROIoriX

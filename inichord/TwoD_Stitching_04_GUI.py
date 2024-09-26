@@ -21,7 +21,7 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-from . import general_functions as gf
+from inichord import general_functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi
@@ -71,7 +71,7 @@ class MainWindow(uiclass, baseclass):
         self.val_tresh = self.Tresh_spinBox.value()
         self.Tresh_spinBox.valueChanged.connect(self.Change_treshold)
         
-        self.Range_Edit.setText("300")
+        self.Range_Edit.setText("0")
         self.changeRange() # Modify the searching range 
         self.Range_Edit.editingFinished.connect(self.changeRange) # Modify the searching range 
         
@@ -118,9 +118,8 @@ class MainWindow(uiclass, baseclass):
                 mask = np.isnan(self.KAD_base[i])
                 self.KAD_base[i][mask] = np.interp(np.flatnonzero(mask), np.flatnonzero(~mask), self.KAD_base[i][~mask]) # Allow to convert NaN value with the nearest good value
                 
-                if self.flag_KAD == True: # Normalization and CLAHE application of every array
-                    self.KAD_base[i] = (self.KAD_base[i] - np.min(self.KAD_base[i])) / (np.max(self.KAD_base[i]) - np.min(self.KAD_base[i])) # Normalization step
-                    self.KAD_base[i] = exposure.equalize_adapthist(self.KAD_base[i], kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
+                self.KAD_base[i] = (self.KAD_base[i] - np.min(self.KAD_base[i])) / (np.max(self.KAD_base[i]) - np.min(self.KAD_base[i])) # Normalization step
+                self.KAD_base[i] = exposure.equalize_adapthist(self.KAD_base[i], kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
     
                 if self.KAD_base[i].dtype != 'uint8': # If data is not a 8bits one, then the conversion is apply
                     self.KAD_base[i] = gf.convertToUint8(self.KAD_base[i])
@@ -145,6 +144,15 @@ class MainWindow(uiclass, baseclass):
             self.Tresh_spinBox.setEnabled(True)
             self.full_range.setEnabled(True)
             self.ComputeClass_bttn.setEnabled(True)
+            
+        range_step = []
+        for i in range(0,len(self.KAD_base)):
+            range_step.append(np.mean(self.KAD_base[i].shape[1]))
+
+        auto_val_range = int(np.round(np.mean(range_step)*0.3)) # 30% of the mean dimensions of images
+
+        self.Range_Edit.setText(str(auto_val_range))
+        self.val_range = auto_val_range
         
     def set_up(self):
         # Here, nbr of column and nbr of raw are defined. self.Super_listing is create.
@@ -186,7 +194,7 @@ class MainWindow(uiclass, baseclass):
             self.flag_affine = False
             self.flag_homo = True
             
-    def Stitching(self): # Stitch images together
+    def Stitching(self): # Stitch images together   
         self.transfo_choice = self.Transfo_box.currentText() # Extract transformation choice
         self.make_transfo_choice() # Define which transformation must be used
         
@@ -271,8 +279,6 @@ class MainWindow(uiclass, baseclass):
         # Allow to specifiy if the descriptor determination must be apply on the whole images or only a part of it
         if self.full_range.isChecked():
             self.val_range = len(data2[0])
-        else :
-            self.val_range = self.val_range
 
         # create a mask image filled with zeros, the size of original image
         mask = np.zeros(data1.shape[:2], dtype=np.uint8)
@@ -399,27 +405,40 @@ class MainWindow(uiclass, baseclass):
         self.parent.popup_message("2D stitching","Saving process is over.",'icons/Stitch_icon.png')
 
     def export_data(self): # Push stitched image in the main GUI
-        self.parent.KAD = np.copy(self.displayed_dst) # Copy in the main GUI
-        self.parent.StackList.append(self.displayed_dst) # Add the data in the stack list
+        if self.flag_KAD == True: # If stitching has been applied on KAD data 
+            self.parent.flag_stitchKAD = True
+            
+            self.parent.KAD = np.copy(self.displayed_dst) # Copy in the main GUI
+            self.parent.StackList.append(self.displayed_dst) # Add the data in the stack list
+            
+            self.parent.StackDir = self.StackDir
+            
+            self.parent.displayDataview(self.parent.KAD) # Display the labeled grain
+            self.parent.choiceBox.setCurrentIndex(self.parent.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+        else :
+            self.parent.flag_stitchKAD = False
+            
+            self.parent.Contour_map = np.copy(self.displayed_dst) # Copy in the main GUI
+            self.parent.StackList.append(self.displayed_dst) # Add the data in the stack list
+            
+            self.parent.StackDir = self.StackDir
+            
+            self.parent.displayDataview(self.parent.Contour_map) # Display the labeled grain
+            self.parent.choiceBox.setCurrentIndex(self.parent.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
         
-        self.parent.StackDir = self.StackDir
-        
-        Combo_text = '\u2022 Stitched KAD'
+        Combo_text = '\u2022 Stitched map'
         Combo_data = self.displayed_dst
         self.parent.choiceBox.addItem(Combo_text, Combo_data) # Add the data in the QComboBox
 
-        self.parent.displayDataview(self.parent.KAD) # Display the labeled grain
-        self.parent.choiceBox.setCurrentIndex(self.parent.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
-
         self.parent.Info_box.ensureCursorVisible()
-        self.parent.Info_box.insertPlainText("\n \u2022 Stitched KAD map.") 
+        self.parent.Info_box.insertPlainText("\n \u2022 Stitched map.") 
              
         self.parent.Save_button.setEnabled(True)
         self.parent.Reload_button.setEnabled(True)
         self.parent.choiceBox.setEnabled(True)
         
         # Finished message
-        self.parent.popup_message("2D stitching","Stitched KAD has been exported to the main GUI.",'icons/Stitch_icon.png')
+        self.parent.popup_message("2D stitching","Stitched array has been exported to the main GUI.",'icons/Stitch_icon.png')
     
     def displayExpKAD(self, series): # Display of initial KAD maps
         self.KADSeries.ui.histogram.hide()

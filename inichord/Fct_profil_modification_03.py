@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from scipy import ndimage
 from scipy import fftpack, signal
-from . import general_functions as gf
+from inichord import general_functions as gf
 import scipy.io.wavfile
 import scipy.signal
 # import cupy as cp

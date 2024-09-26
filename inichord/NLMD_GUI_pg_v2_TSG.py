@@ -18,7 +18,7 @@ from PyQt5 import QtWidgets
 
 from PyQt5.QtWidgets import QApplication
 
-from . import general_functions as gf
+from inichord import general_functions as gf
 
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
@@ -38,7 +38,7 @@ class MainWindow(uiclass, baseclass):
         self.parent = parent
         
         self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png'))    
-                
+        
         self.expStack = parent.Current_stack
 
         self.denoised_Stack = np.copy(parent.Current_stack)
@@ -85,17 +85,8 @@ class MainWindow(uiclass, baseclass):
         
         self.type = self.expStack.dtype
 
-        if self.type == "uint16":
-            self.expStack = gf.convertToUint8(self.expStack)
-            self.expStack = self.expStack.astype(np.float32)
-            
-            self.denoised_Stack = gf.convertToUint8(self.denoised_Stack)
-            self.denoised_Stack = self.denoised_Stack.astype(np.float32)
-            
-        elif self.type == "uint8":
-            self.expStack = self.expStack.astype(np.float32)
-            
-            self.denoised_Stack = self.denoised_Stack.astype(np.float32)
+        self.expStack = self.check_type(self.expStack) # Convert data to float32 if needed
+        self.denoised_Stack = self.check_type(self.denoised_Stack) # Convert data to float32 if needed
             
         self.displayExpStack(self.expStack)
         self.defaultdrawCHORDprofiles()
@@ -109,6 +100,23 @@ class MainWindow(uiclass, baseclass):
         self.screen = screen
         
         self.Validate_button.setEnabled(False)
+        self.mouseLock.setVisible(False)
+
+    def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
+        datatype = data.dtype
+
+        if datatype == "float64":
+            data = gf.convertToUint8(data)
+            self.data = data.astype(np.float32)
+        if datatype == "uint16":
+            data = gf.convertToUint8(data)
+            self.data = data.astype(np.float32)
+        elif datatype == "uint8":
+            self.data = data.astype(np.float32)
+        elif datatype == "float32":
+            self.data = data
+            
+        return self.data
 
     def size_changed(self):
         value = self.slider_size.value()

@@ -1396,7 +1396,7 @@ QSlider::handle:horizontal {
                <number>0</number>
               </property>
               <property name="text">
-               <string>KAD map</string>
+               <string>Imported map</string>
               </property>
               <property name="scaledContents">
                <bool>false</bool>
@@ -1619,7 +1619,7 @@ QSlider::handle:horizontal {
                <number>0</number>
               </property>
               <property name="text">
-               <string>Filtered KAD</string>
+               <string>Filtered map</string>
               </property>
               <property name="scaledContents">
                <bool>false</bool>

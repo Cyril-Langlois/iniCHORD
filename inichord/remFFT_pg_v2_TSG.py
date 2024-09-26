@@ -60,6 +60,7 @@ class MainWindow(uiclass, baseclass):
         self.expSeries.timeLine.sigPositionChanged.connect(self.drawCHORDprofiles)
         self.preview.clicked.connect(self.FFTStack)
         self.filtered.stateChanged.connect(self.drawCHORDprofiles)
+        self.mouseLock.setVisible(False)
         
         self.Validate_button.clicked.connect(self.validate)
         

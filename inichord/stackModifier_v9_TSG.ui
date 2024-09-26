@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>823</width>
-    <height>638</height>
+    <height>738</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -762,10 +762,141 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </item>
            </layout>
           </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="Line" name="line_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <property name="lineWidth">
+             <number>5</number>
+            </property>
+            <property name="midLineWidth">
+             <number>5</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <widget class="QPushButton" name="Del_bttn">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Remove the current slice of the stack&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Delete current slice</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="Replace_bttn">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>116</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Remplace the current slice with the previous one&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Replace current slice</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="Line" name="line_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <property name="lineWidth">
+             <number>5</number>
+            </property>
+            <property name="midLineWidth">
+             <number>5</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+             <widget class="QLabel" name="label_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <family>Noto Sans Cond</family>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <italic>false</italic>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+              </property>
+              <property name="text">
+               <string>Threshold</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
             <item>
-             <widget class="QPushButton" name="Del_bttn">
+             <widget class="QSpinBox" name="Threshold_2">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -774,31 +905,39 @@ font : 12pt &quot;Noto Sans Cond&quot;;
               </property>
               <property name="minimumSize">
                <size>
-                <width>100</width>
-                <height>0</height>
+                <width>85</width>
+                <height>15</height>
                </size>
               </property>
               <property name="toolTip">
-               <string/>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Threshold (shift in pxls) to extract automatically erroneous images (shift during acquisition)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
-              <property name="styleSheet">
-               <string notr="true">border-style: outset;
-border-width: 3px;
-border-radius: 7px;
-border-color: gray;
-min-width: 5em;
-padding: 2px;</string>
+              <property name="minimum">
+               <number>1</number>
               </property>
-              <property name="text">
-               <string>Delete current slice</string>
+              <property name="maximum">
+               <number>1000</number>
               </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+              <property name="value">
+               <number>200</number>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="Erroneous_bttn">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Run the search of erroneous images and replace them&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Replace erroneous images</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../Traitement_stack/icons/run_icon.png</normaloff>../Traitement_stack/icons/run_icon.png</iconset>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="verticalSpacer">

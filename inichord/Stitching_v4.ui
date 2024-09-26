@@ -259,7 +259,7 @@ QSlider::handle:horizontal {
              <string notr="true">font: 10pt &quot;Noto Sans Cond&quot;;</string>
             </property>
             <property name="text">
-             <string>Displayed KAD</string>
+             <string>Unit map</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -877,7 +877,7 @@ QSlider::handle:horizontal {
             </property>
             <property name="minimumSize">
              <size>
-              <width>350</width>
+              <width>114</width>
               <height>350</height>
              </size>
             </property>
@@ -1142,7 +1142,7 @@ QSlider::handle:horizontal {
              <number>0</number>
             </property>
             <property name="text">
-             <string>KAD map</string>
+             <string>Unit map</string>
             </property>
             <property name="scaledContents">
              <bool>false</bool>

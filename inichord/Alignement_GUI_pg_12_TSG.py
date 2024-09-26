@@ -15,7 +15,7 @@ from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-from . import general_functions as gf
+from inichord import general_functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Aligned_pg_ui_12_TSG.ui")
@@ -32,11 +32,15 @@ class MainWindow(uiclass, baseclass):
         self.expStack = parent.Current_stack
         self.Pre_treatment_stack = np.copy(parent.Current_stack) # Stack that will be used to process the pretreatment 
         
+        # Stack that will store the final result
+        self.Aligned_stack = np.copy(parent.Current_stack)
+        
         self.type = self.expStack.dtype
 
-        if self.type == "uint16" or self.type == "uint32":
+        if self.type == "uint16" or self.type == "uint32" or self.type == "float64" or self.type == "float32":
             self.expStack = gf.convertToUint8(self.expStack) # Necessary for computation
             self.Pre_treatment_stack = gf.convertToUint8(self.Pre_treatment_stack)
+            self.Aligned_stack = gf.convertToUint8(self.Pre_treatment_stack)
 
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
@@ -46,9 +50,6 @@ class MainWindow(uiclass, baseclass):
         self.Pre_treatment_doppelstack_Remout = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_doppelstack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_doppelstack_output2 = np.copy(self.Pre_treatment_stack)
-        
-        # Stack that will store the final result
-        self.Aligned_stack = np.copy(parent.Current_stack)
 
         self.blur_value = int(self.Blur_box.currentText())
         self.sobel_value = int(self.Sobel_box.currentText())
@@ -64,8 +65,8 @@ class MainWindow(uiclass, baseclass):
         self.radius_Val = self.Radius_slider.value() # Input filtre Remout
         self.threshold_Val = self.Threshold_slider.value()  # Input filtre Remout
         
-        self.Label_radius.setText("Radius: " + str(self.radius_Val)) # Input filtre Remout
-        self.Label_threshold.setText("Threshold: " + str(self.threshold_Val)) # Input filtre Remout
+        self.Label_radius.setText("Remove Outliers - Radius: " + str(self.radius_Val)) # Input filtre Remout
+        self.Label_threshold.setText("Remove Outliers - Threshold: " + str(self.threshold_Val)) # Input filtre Remout
         
         self.Radius_slider.valueChanged.connect(self.radius_changed) # Input filtre Remout
         self.Threshold_slider.valueChanged.connect(self.threshold_changed) # Input filtre Remout
@@ -109,7 +110,7 @@ class MainWindow(uiclass, baseclass):
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
         self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.15))
-        self.resize(int(geometry.width() * 0.7), int(geometry.height() * 0.6))
+        self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.7))
         self.screen = screen
 
 #%% Functions : initialization
@@ -139,24 +140,20 @@ class MainWindow(uiclass, baseclass):
         elif self.choice_transfo == "Homography":
             self.wrapmode  = cv2.MOTION_HOMOGRAPHY
             self.flagTransformation = "Homography"
-        # else :
-        #     self.wrapmode  = cv2.MOTION_HOMOGRAPHY
-        #     self.textEdit.insertPlainText("\n CoReg°: homography will be used.")
-        #     self.flagTransformation = "Homography"
         
         return self.wrapmode
                
     def radius_changed(self): # apply remove outliers radius modification
         value = self.Radius_slider.value()
         self.radius_Val = value
-        self.Label_radius.setText("Radius: " + str(self.radius_Val)) 
+        self.Label_radius.setText("Remove Outliers - Radius: " + str(self.radius_Val)) 
         self.Coefficient_estim()
         self.Pre_treatment_slice()
 
     def threshold_changed(self):  # Apply remove outliers threshold modification
         value = self.Threshold_slider.value()
         self.threshold_Val = value
-        self.Label_threshold.setText("Threshold: " + str(self.threshold_Val))
+        self.Label_threshold.setText("Remove Outliers - Threshold: " + str(self.threshold_Val))
         self.Coefficient_estim()
         self.Pre_treatment_slice()  
         
@@ -212,22 +209,22 @@ class MainWindow(uiclass, baseclass):
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
         
-        if len(self.Pre_treatment_stack_Remout) < 10:
-            self.parent.popup_message("Registration","A minimum of 10 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
+        if len(self.Pre_treatment_stack_Remout) < 5:
+            self.parent.popup_message("Registration","A minimum of 5 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
             return
         
         else: # Here, remouve outliers, Gaussian blur and sobel factor are applied
-            for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/10)): # Applique pour chaque slice les paramètres du remove outlier
+            for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
                 _, self.Pre_treatment_stack_Remout[i, :, :] =  gf.remove_outliers(self.Pre_treatment_stack[i,:,:], self.radius_Val, self.threshold_Val)
             
             if self.blur_value != 0 :
-                for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/10)):
+                for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)):
                     self.Pre_treatment_stack_output[i,:,:] =cv2.GaussianBlur(self.Pre_treatment_stack_Remout[i,:,:],(self.blur_value,self.blur_value),0)
             else :
                 self.Pre_treatment_stack_output = self.Pre_treatment_stack_Remout
             
             if self.sobel_value != 0 :
-                for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/10)):
+                for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)):
                     self.grad_x = cv2.Sobel(self.Pre_treatment_stack_output[i,:,:],cv2.CV_32F,1,0,ksize=self.sobel_value)
                     self.grad_y = cv2.Sobel(self.Pre_treatment_stack_output[i,:,:],cv2.CV_32F,0,1,ksize=self.sobel_value)
                 
@@ -235,30 +232,33 @@ class MainWindow(uiclass, baseclass):
             else :   
                 self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output
          
-            self.Pre_treatment_stack_slice = self.Pre_treatment_stack_output2[0:-1:int(len(self.Pre_treatment_stack)/10),:,:]
+            self.Pre_treatment_stack_slice = self.Pre_treatment_stack_output2[0:-1:int(len(self.Pre_treatment_stack)/5),:,:]
             self.display_Pre_treatment(self.Pre_treatment_stack_slice)
         
     def Pre_treatment(self): # Apply pretreatment on the entire stack
-        self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
-        self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
-        
+        self.textEdit.ensureCursorVisible()
+        self.textEdit.insertPlainText("\n Apply treatment to the entire stack....")
+        QApplication.processEvents()
+    
+        self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
+        self.progressBar.setRange(0, len(self.Pre_treatment_stack)-1) 
+    
+        self.Pre_treatment_stack_output2 = np.copy(self.Pre_treatment_stack)
+    
         for i in range(0,len(self.Pre_treatment_stack[:, 0, 0])): # Applique pour chaque slice les paramètres du remove outlier
-            _, self.Pre_treatment_stack_Remout[i, :, :] =  gf.remove_outliers(self.Pre_treatment_stack[i,:,:], self.radius_Val, self.threshold_Val)
         
-        if self.blur_value != 0 :
-            for i in range(0,len(self.Pre_treatment_stack)):
-                self.Pre_treatment_stack_output[i,:,:] =cv2.GaussianBlur(self.Pre_treatment_stack_Remout[i,:,:],(self.blur_value,self.blur_value),0)
-        else :
-            self.Pre_treatment_stack_output = self.Pre_treatment_stack_Remout
-            
-        if self.sobel_value != 0 :
-            for i in range(0,len(self.Pre_treatment_stack)):
-                self.grad_x = cv2.Sobel(self.Pre_treatment_stack_output[i,:,:],cv2.CV_32F,1,0,ksize=self.sobel_value)
-                self.grad_y = cv2.Sobel(self.Pre_treatment_stack_output[i,:,:],cv2.CV_32F,0,1,ksize=self.sobel_value)
+            QApplication.processEvents()    
+            self.ValSlice = i
+            self.progression_bar()
+        
+            _, self.Pre_treatment_stack_output2[i, :, :] =  gf.remove_outliers(self.Pre_treatment_stack[i,:,:], self.radius_Val, self.threshold_Val)
+            if self.blur_value != 0 :
+                self.Pre_treatment_stack_output2[i,:,:] =cv2.GaussianBlur(self.Pre_treatment_stack_output2[i,:,:],(self.blur_value,self.blur_value),0)
+            if self.sobel_value != 0 :
+                self.grad_x = cv2.Sobel(self.Pre_treatment_stack_output2[i,:,:],cv2.CV_32F,1,0,ksize=self.sobel_value)
+                self.grad_y = cv2.Sobel(self.Pre_treatment_stack_output2[i,:,:],cv2.CV_32F,0,1,ksize=self.sobel_value)
             
                 self.Pre_treatment_stack_output2[i,:,:] = cv2.addWeighted(np.absolute(self.grad_x), 0.5, np.absolute(self.grad_y), 0.5, 0)
-        else :   
-            self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output
      
         self.display_Pre_treatment(self.Pre_treatment_stack_output2)
         self.textEdit.insertPlainText("\n The stack is ready for registration.")
@@ -350,6 +350,7 @@ class MainWindow(uiclass, baseclass):
 #%% Functions : registration
     def Registration_seq_step(self): # Step to perform sequential registration
         self.choice_transfo = self.transfo_comboBox.currentText()
+        self.flagTransformation = self.choice_transfo
         if self.choice_transfo == "Translation" or self.choice_transfo == "Scaled rotation" or self.choice_transfo == "Rigid body" :
             self.Aligned_stack = self.Seq_registration()
             self.AlignedStack.ui.roiBtn.hide()
@@ -368,6 +369,7 @@ class MainWindow(uiclass, baseclass):
         
     def Registration_incre_step(self):  # Step to perform incremental registration
         self.choice_transfo = self.transfo_comboBox.currentText()
+        self.flagTransformation = self.choice_transfo
         if self.choice_transfo == "Translation" or self.choice_transfo == "Scaled rotation" or self.choice_transfo == "Rigid body" :
             self.Aligned_stack = self.Incre_registration()
             self.AlignedStack.ui.roiBtn.hide()
@@ -405,9 +407,6 @@ class MainWindow(uiclass, baseclass):
         self.textEdit.insertPlainText("\n Sequential registration is running.")
         
         self.Aligned_stack = np.copy(self.expStack)
-        
-        self.choice_transfo = self.transfo_comboBox.currentText()
-        self.flagTransformation = self.choice_transfo
         
         QApplication.processEvents()
         self.textEdit.insertPlainText("\n Transformation: " + str(self.flagTransformation))

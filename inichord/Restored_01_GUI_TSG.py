@@ -5,6 +5,7 @@ Created on Wed Nov 22 23:26:20 2023
 @author: clanglois1
 """
 import os
+import sys
 
 from inspect import getsourcefile
 from os.path import abspath
@@ -14,11 +15,12 @@ import pyqtgraph as pg
 import tifffile as tf
 import time
 
-from PyQt5.QtWidgets import QApplication,QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QMessageBox
+
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QPixmap
 
-from . import general_functions as gf
+from inichord import general_functions as gf
 
 from skimage import morphology, filters, exposure
 from scipy import ndimage as ndi
@@ -78,7 +80,7 @@ class MainWindow(uiclass, baseclass):
         self.proxy11 = pg.SignalProxy(self.Binary2Series.scene.sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
         self.proxy12 = pg.SignalProxy(self.Binary2Series.ui.graphicsView.scene().sigMouseClicked, rateLimit=60, slot=self.mouseClick)
 
-        self.OpenData.clicked.connect(self.loaddata) # To load a KAD data
+        self.OpenData.clicked.connect(self.loaddata) # To load a map data
         self.ComputeClass_bttn.clicked.connect(self.Otsu1) # Computation of the Otsu 1 (classes creation)
         self.Threshold_bttn.clicked.connect(self.Binary_1) # Computation of the Otsu thresholding 1
         self.ComputeClass_bttn_2.clicked.connect(self.Otsu2) # Computation of the Otsu 2 (classes creation) 
@@ -92,13 +94,24 @@ class MainWindow(uiclass, baseclass):
         self.ChoiceBox.currentTextChanged.connect(self.ViewLabeling) # Change the displayed map
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
+        self.mouseLock.setVisible(False)
         
         # Icons sizes management for QMessageBox
         self.pixmap = QPixmap("icons/Restored_Icons.png")
         self.pixmap = self.pixmap.scaled(100, 100)
-        
+
         try:
-            self.InitKAD_map = parent.KAD
+            if hasattr(parent, 'KAD') : # Choice of KAD if only available
+                self.InitKAD_map = parent.KAD
+                self.flag_KAD = True
+                
+            if hasattr(parent, 'contour_map') : # Choice of contour map if only avalaible
+                self.InitKAD_map = parent.contour_map
+                self.flag_KAD = False
+                
+            if hasattr(parent, 'KAD') and hasattr(parent, 'contour_map'):
+                self.show_choice_message() # Choice of the map if the two are available
+                
             self.StackDir = self.parent.StackDir
             self.run_init_computation()
         except:
@@ -114,16 +127,42 @@ class MainWindow(uiclass, baseclass):
         self.screen = screen
 
 #%% Functions
+    def show_choice_message(self): # Qmessage box for the try import at the initialization 
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("Choice of the data")
+        msg_box.setText("Data to use :")
+    
+        btn_kad = msg_box.addButton("KAD map", QMessageBox.ActionRole)
+        btn_contour = msg_box.addButton("Contour map", QMessageBox.ActionRole)
+
+        msg_box.exec_()
+    
+        if msg_box.clickedButton() == btn_kad:
+            self.InitKAD_map = self.parent.KAD
+            self.flag_KAD = True
+        elif msg_box.clickedButton() == btn_contour:
+            self.InitKAD_map = self.parent.contour_map
+            self.flag_KAD = False
+
+    def data_choice(self): # Allow to apply other treatment depending if the data is a KAD one
+        msg = QMessageBox.question(self, 'Restored grains', 'Is it a KAD data ?')
+        if msg == QMessageBox.Yes:
+            self.flag_KAD = True
+        if msg == QMessageBox.No:
+            self.flag_KAD = False
+
     def loaddata(self):
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
         self.ChoiceBox.clear() # Clear the QComboBox
 
-        self.StackLoc, self.StackDir = gf.getFilePathDialog("Open KAD map (*.tiff)") 
+        self.StackLoc, self.StackDir = gf.getFilePathDialog("Open 2D map (*.tiff)") 
         
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
-        if checkimage.ndim != 2: # Check if the data is a KAD map (2D array)
+        if checkimage.ndim != 2: # Check if the data is a 2D array
             self.parent.popup_message("Restored grain determination","Please import a 2D array",'icons/Restored_Icons.png')
             return
+        
+        self.data_choice()
         
         self.InitKAD_map = tf.TiffFile(self.StackLoc[0]).asarray()
         self.InitKAD_map = np.flip(self.InitKAD_map, 0)
@@ -133,7 +172,7 @@ class MainWindow(uiclass, baseclass):
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
         self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
         
-        self.displayExpKAD(self.InitKAD_map) # Display of the KAD map
+        self.displayExpKAD(self.InitKAD_map) # Display of the map
         
         self.auto_set() # Allow different preset of parameters to be used.
         
@@ -142,7 +181,7 @@ class MainWindow(uiclass, baseclass):
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
         self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
         
-        self.displayExpKAD(self.InitKAD_map) # Display of the KAD map
+        self.displayExpKAD(self.InitKAD_map) # Display of the map
         
         self.auto_set() # Default set is "Default"
 
@@ -156,7 +195,7 @@ class MainWindow(uiclass, baseclass):
             self.ClassBox2.setValue(4) # Number of classes for second Otsu
             self.ThresholdBox_2.setValue(1) # Threshold value for last Otsu
 
-            self.Filter_changed() # Compute the filtered KAD map
+            self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
             self.Otsu2() # Compute the second Otsu
@@ -169,7 +208,7 @@ class MainWindow(uiclass, baseclass):
             self.ClassBox2.setValue(5) # Number of classes for second Otsu
             self.ThresholdBox_2.setValue(1) # Threshold value for last Otsu
 
-            self.Filter_changed() # Compute the filtered KAD map
+            self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
             self.Otsu2() # Compute the second Otsu
@@ -182,7 +221,7 @@ class MainWindow(uiclass, baseclass):
             self.ClassBox2.setValue(6) # Number of classes for second Otsu
             self.ThresholdBox_2.setValue(1) # Threshold value for last Otsu
             
-            self.Filter_changed() # Compute the filtered KAD map
+            self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
             self.Otsu2() # Compute the second Otsu
@@ -195,7 +234,7 @@ class MainWindow(uiclass, baseclass):
             self.ClassBox2.setValue(5) # Number of classes for second Otsu
             self.ThresholdBox_2.setValue(3) # Threshold value for last Otsu
             
-            self.Filter_changed() # Compute the filtered KAD map
+            self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
             self.Otsu2() # Compute the second Otsu
@@ -208,13 +247,13 @@ class MainWindow(uiclass, baseclass):
             self.ClassBox2.setValue(6) # Number of classes for second Otsu
             self.ThresholdBox_2.setValue(3) # Threshold value for last Otsu
             
-            self.Filter_changed() # Compute the filtered KAD map
+            self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
             self.Otsu2() # Compute the second Otsu
             self.Binary_2() # Compute the final thresholding
 
-    def Filter_changed(self): # Allow the modification of the KAD map with different filtering and values
+    def Filter_changed(self): # Allow the modification of the map with different filtering and values
         self.Filter_choice = self.FilterBox.currentText()
         
         if self.Filter_choice == "Mean filter":
@@ -233,12 +272,12 @@ class MainWindow(uiclass, baseclass):
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.butterworth(self.FilteredKAD_map,self.Filter_value,False,8)
             
-        self.displayFilteredKAD(self.FilteredKAD_map) # Display the KAD map after load
+        self.displayFilteredKAD(self.FilteredKAD_map) # Display the map after load
 
     def Otsu1(self): # Segment map into classes
         self.Otsu1_Value = self.ClassBox.value()
 
-        # Segmentation of the KAD intensities for a given number of classes
+        # Segmentation of the intensities for a given number of classes
         thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
         self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
 
@@ -265,7 +304,7 @@ class MainWindow(uiclass, baseclass):
         self.Otsu2_Value = self.ClassBox2.value()
         self.binary_regions_distance = ndi.distance_transform_edt(1-self.binary_regions)
         
-        # Segmentation of the KAD intensities for a given number of classes
+        # Segmentation of the intensities for a given number of classes
         thresholds = filters.threshold_multiotsu(self.binary_regions_distance, classes = self.Otsu2_Value) # Definition of the threshold values
         self.regions_distance = np.digitize(self.binary_regions_distance, bins=thresholds) # Using the threshold values, we generate the regions.
 
@@ -285,7 +324,7 @@ class MainWindow(uiclass, baseclass):
         var = np.where(self.restored_grains == True) # Every pixel with value > Binary2_Value is considerered
         self.binary_regions2[var] = 5
         
-        # Creation of the overlay map: KAD map and restored pixels location
+        # Creation of the overlay map: map and restored pixels location
         var = np.where(self.restored_grains == True)
         self.overlay_KAD_restored = np.copy(self.InitKAD_map)
         self.overlay_KAD_restored[var] = 1   
@@ -301,7 +340,7 @@ class MainWindow(uiclass, baseclass):
         Combo_data = self.restored_grains
         self.ChoiceBox.addItem(Combo_text, Combo_data)
 
-        Combo_text = 'Overlay KAD-restored grains'
+        Combo_text = 'Overlay map-restored grains'
         Combo_data = self.overlay_KAD_restored
         self.ChoiceBox.addItem(Combo_text, Combo_data)
         
@@ -337,7 +376,7 @@ class MainWindow(uiclass, baseclass):
             self.displayBinary2(self.binary_regions2) # Display the KAD map after load
             self.flag_restored_struc = True
             
-        if self.view_choice == "Overlay KAD-restored grains":
+        if self.view_choice == "Overlay map-restored grains":
             self.displayBinary2(self.overlay_KAD_restored) # Display the KAD map after load
             self.flag_overlay = True
             
@@ -355,17 +394,18 @@ class MainWindow(uiclass, baseclass):
         PathDir = os.path.join(self.StackDir, directory) 
         os.mkdir(PathDir)  
         
-        tf.imwrite(PathDir + '/KAD_CLAHE.tiff', np.rot90(np.flip(self.InitKAD_map, 0), k=1, axes=(1, 0)))
-        tf.imwrite(PathDir + '/Filtered_KAD.tiff', np.rot90(np.flip(self.FilteredKAD_map, 0), k=1, axes=(1, 0)))  
+        tf.imwrite(PathDir + '/Map_CLAHE.tiff', np.rot90(np.flip(self.InitKAD_map, 0), k=1, axes=(1, 0)))
+        tf.imwrite(PathDir + '/Filtered_map.tiff', np.rot90(np.flip(self.FilteredKAD_map, 0), k=1, axes=(1, 0)))  
         tf.imwrite(PathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
         tf.imwrite(PathDir + '/Binary_Otsu.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)))
         tf.imwrite(PathDir + '/Otsu_2.tiff', np.rot90(np.flip(self.regions_distance, 0), k=1, axes=(1, 0)).astype('float32')) 
         tf.imwrite(PathDir + '/Threshold_2.tiff', np.rot90(np.flip(self.binary_regions2, 0), k=1, axes=(1, 0)).astype('float32'))  # Map with restored pixel = 5
         tf.imwrite(PathDir + '/Restored_grains_only.tiff', np.rot90(np.flip(self.restored_grains, 0), k=1, axes=(1, 0))) # Map with restored pixel = 5
-        tf.imwrite(PathDir + '/Overlay_KAD_restored.tiff', np.rot90(np.flip(self.overlay_KAD_restored, 0), k=1, axes=(1, 0))) # Map with restored pixel = 5
+        tf.imwrite(PathDir + '/Overlay_map_restored.tiff', np.rot90(np.flip(self.overlay_KAD_restored, 0), k=1, axes=(1, 0))) # Map with restored pixel = 5
         
         with open(PathDir + '\Restored grains determination.txt', 'w') as file:
-            file.write("Filtering parameter: " + str(self.Filter_choice) + " - " + (str(self.Filter_value)))   
+            file.write("KAD data: " + str(self.flag_KAD))
+            file.write("\nFiltering parameter: " + str(self.Filter_choice) + " - " + (str(self.Filter_value)))   
             file.write("\nOtsu n°1 class: "+ str(self.Otsu1_Value) + "\nThresholded n°1 classes (keep values equal or higher than): " + str(self.Binary1_Value))   
             file.write("\nOtsu n°2 class: "+ str(self.Otsu2_Value) + "\nThresholded n°2 classes (keep values higher than): " + str(self.Binary2_Value))     
             file.write("\nRestored fraction: "+ str(self.fraction_mean) + ' \u00B1 ' + str(self.fraction_std) + ' % ')
@@ -642,6 +682,6 @@ class MainWindow(uiclass, baseclass):
         
         if self.flag_overlay == True: # Display value of KAD (with restored as 1)
             try:
-                self.Threshold2_label.setText("KAD overlay: " + str(np.round(self.overlay_KAD_restored[x, y],2)))        
+                self.Threshold2_label.setText("Map overlay: " + str(np.round(self.overlay_KAD_restored[x, y],2)))        
             except:
                 pass

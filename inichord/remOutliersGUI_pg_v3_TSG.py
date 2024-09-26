@@ -14,7 +14,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from . import general_functions as gf
+from inichord import general_functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/remOutliers_v4_TSG.ui")
@@ -62,6 +62,7 @@ class MainWindow(uiclass, baseclass):
         self.denoised.stateChanged.connect(self.drawCHORDprofiles)
         
         self.Validate_button.clicked.connect(self.validate)
+        self.mouseLock.setVisible(False)
         
         self.prgbar = 0 # Outil pour la bar de progression
         self.progressBar.setValue(self.prgbar)
@@ -98,7 +99,7 @@ class MainWindow(uiclass, baseclass):
         self.denoised_Stack[0, :, :] = a 
         self.displayExpStack(self.denoised_Stack)
         self.denoised.setEnabled(False)
-
+        
     def remOutStack(self):
         self.denoised.setEnabled(False)
         self.preview.setEnabled(False)

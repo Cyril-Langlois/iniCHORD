@@ -15,7 +15,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from . import general_functions as gf
+from inichord import general_functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/BM3D_v2_TSG.ui")
@@ -61,6 +61,7 @@ class MainWindow(uiclass, baseclass):
         self.denoised.stateChanged.connect(self.drawCHORDprofiles)
         
         self.Validate_button.clicked.connect(self.validate)
+        self.mouseLock.setVisible(False)
         
         self.img_number = len(self.expStack)
         self.prgbar = 0 # Outil pour la bar de progression
