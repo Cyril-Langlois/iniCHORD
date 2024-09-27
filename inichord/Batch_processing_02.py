@@ -18,13 +18,13 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from PyQt5.QtWidgets import QApplication
 
-from LibrairiesCyril import general_functions as gf # USED
-from LibrairiesCyril import Alignement_GUI_pg_12_TSG as align # USED
-from LibrairiesCyril import remFFT_pg_v2_TSG as RemFFT # USED
-from LibrairiesCyril import remOutliersGUI_pg_v3_TSG as rO # USED
-from LibrairiesCyril import Denoise_GUI_pg_03_TSG as autoden # USED
-from LibrairiesCyril import KAD_function_02 as KADfunc # USED
-from LibrairiesCyril import Contour_map_pg_01_TSG as Contour
+from inichord import general_functions as gf # USED
+from inichord import Alignement_GUI_pg_12_TSG as align # USED
+from inichord import remFFT_pg_v2_TSG as RemFFT # USED
+from inichord import remOutliersGUI_pg_v3_TSG as rO # USED
+from inichord import Denoise_GUI_pg_03_TSG as autoden # USED
+from inichord import KAD_function_02 as KADfunc # USED
+from inichord import Contour_map_pg_01_TSG as Contour
 
 import tkinter as tk
 from tkinter import filedialog
