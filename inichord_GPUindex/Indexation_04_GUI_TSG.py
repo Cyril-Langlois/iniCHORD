@@ -23,11 +23,11 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QPixmap
 
-from inichord_GPUindex import general_functions as gf
-import inichord_GPUindex.Xallo as xa
-import inichord_GPUindex.indexation_tiff_sur_GPU_v27_lib_TSG as indGPU
-from inichord_GPUindex import IPF_V2_TSG as IPF_computation
-from inichord_GPUindex import Symetry as sy
+from inichord import general_functions as gf
+import inichord.Xallo as xa
+import inichord.indexation_tiff_sur_GPU_v27_lib_TSG as indGPU
+from inichord import IPF_V2_TSG as IPF_computation
+from inichord import Symetry as sy
 
 from pyquaternion import Quaternion
 
@@ -199,11 +199,11 @@ class MainWindow(uiclass, baseclass):
             
         except: # If the location is unreachable, then it is mandatory to search manually
             self.parent.popup_message("Indexation","Please import the CIF file",'icons/Indexation_icon.png')
-            fileList = filedialog.askopenfilename(title='fichier CIF', multiple=True)[0]
+            self.CIFpath[0] = filedialog.askopenfilename(title='fichier CIF', multiple=True)[0]
             
-            self.phases.append(diffpy.structure.loadStructure(fileList))
-            self.crys = da.functions_crystallography.readcif(fileList)
-            self.SymQ = sy.get_proper_quaternions_from_CIF(fileList)
+            self.phases.append(diffpy.structure.loadStructure(self.CIFpath[0]))
+            self.crys = da.functions_crystallography.readcif(self.CIFpath[0])
+            self.SymQ = sy.get_proper_quaternions_from_CIF(self.CIFpath[0])
 
         self.Info_box.ensureCursorVisible()
         self.Info_box.insertPlainText("\n \u2022 CIF file has been loaded.")
