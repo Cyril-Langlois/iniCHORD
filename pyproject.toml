@@ -27,4 +27,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-IniCHORD = "inichord.Traitement_stack_12_GUI_sans_indexation_inichord_main:main"
+IniCHORD = "inichord.__main__:main"
