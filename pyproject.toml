@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inichord"
-version = "0.1.8"
+version = "0.1.13"
 description = "image series treatment tools"
 authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]
 license = "CeCILL"
@@ -25,3 +25,6 @@ scikit-image = "^0.24"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+IniCHORD = "inichord.Traitement_stack_12_GUI_sans_indexation_inichord_main:main"
