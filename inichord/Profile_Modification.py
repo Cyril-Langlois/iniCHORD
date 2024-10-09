@@ -6,7 +6,12 @@ from scipy import fftpack, signal
 from inichord import General_Functions as gf
 import scipy.io.wavfile
 import scipy.signal
-# import cupy as cp
+
+# Ouvrir le fichier en mode lecture
+with open('config.txt', 'r') as file:
+    line = file.read()  # Lire tout le contenu
+    if line == "True":
+        import cupy as cp
 
 def cyclic(a, axProf):
     '''

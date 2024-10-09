@@ -39,6 +39,9 @@ from inichord import Batch_Processing as Batch
 from inichord import TwoD_Stitching as Img_Stitch
 from inichord import ThreeD_Stitching as Series_Stitch
 
+if "cupy" in sys.modules:
+    from indexGPU import Indexation_GUI as Indexation_TSG
+
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
 
@@ -67,7 +70,7 @@ class MainWindow(uiclass, baseclass):
         self.Reload_button.clicked.connect(self.ReloadStack) # Reload previous data
         self.Tool_button.clicked.connect(self.toolbox) # Run the selected toolbox  
         self.Save_button.clicked.connect(self.ExtractionStack) # Extract data from the GUI
-    
+        
         self.crosshair_v1= pg.InfiniteLine(angle=90, movable=False, pen=self.color5)
         self.crosshair_h1 = pg.InfiniteLine(angle=0, movable=False, pen=self.color5)
         
@@ -104,7 +107,6 @@ class MainWindow(uiclass, baseclass):
         self.choiceBox.setEnabled(False)
         self.progressBar.setVisible(False) # The progress bar is hidden for clarity (used only for GRDD-GDS)
         self.mouseLock.setVisible(False)
-        self.Indexation_button.setVisible(False)
         
         for i in range(0,3): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
             self.Tool_choice.model().item(i).setEnabled(False)
@@ -127,7 +129,20 @@ class MainWindow(uiclass, baseclass):
         self.pixmap = QPixmap("icons/Main_icon.png")
         self.pixmap = self.pixmap.scaled(100, 100)
         
+        self.Indexation_button.setVisible(False)
+        
+        if "cupy" in sys.modules:
+            self.Indexation_button.setVisible(True)
+            self.Indexation_button.clicked.connect(self.Indexation_orientation) # Orientation indexation
+        
 #%% Functions
+    try:    
+        def Indexation_orientation(self): # Run the indexing sub-gui
+            self.w = Indexation_TSG.MainWindow(self)
+            self.w.show()
+    except:
+        pass
+
     def closeEvent(self, event):
         msgBox = QMessageBox(self)
         msgBox.setWindowTitle('Confirmation')
