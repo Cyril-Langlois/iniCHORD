@@ -7,5 +7,6 @@ setup(name='inichord',
       description='inichord_dev',
       packages=['inichord'],
 	  data_files=[('Lib/site-packages/inichord', ['inichord/config.txt']),
+				  ('Lib/site-packages/inichord', ['inichord/*.ui']),
      ],
      )
