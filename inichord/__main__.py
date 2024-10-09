@@ -48,7 +48,7 @@ class MainWindow(uiclass, baseclass):
         
         self.setupUi(self)
         self.setWindowIcon(QtGui.QIcon('icons/Main_icon.png')) # Application of the main icon
-               
+             
         # Colors will be applied to all the sub-gui
         self.color1 = (255, 255, 255) # Background color of imageView
         self.color2 = (255, 255, 255) # Background color of PlotWidget
@@ -119,7 +119,7 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.1))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.75))
         self.screen = screen
         
@@ -128,6 +128,24 @@ class MainWindow(uiclass, baseclass):
         self.pixmap = self.pixmap.scaled(100, 100)
         
 #%% Functions
+    def closeEvent(self, event):
+        msgBox = QMessageBox(self)
+        msgBox.setWindowTitle('Confirmation')
+        msgBox.setText("Voulez-vous vraiment quitter ?")
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        
+        # Changer la police
+        font = msgBox.font()
+        font.setPointSize(10)  # Ajuste la taille ici
+        msgBox.setFont(font)
+        
+        reply = msgBox.exec()
+    
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
+
     def loaddata(self): # Allow to load image serie (3D stack or image sequence) and 2D map (KAD data)
         self.StackLoc, self.StackDir = gf.getFilePathDialog("Image stack (*.tiff)")  # Ask to open stack of images
         
