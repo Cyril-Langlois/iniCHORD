@@ -8,7 +8,7 @@ import scipy.io.wavfile
 import scipy.signal
 
 # Ouvrir le fichier en mode lecture
-with open('./config.txt', 'r') as file:
+with open('.\config.txt', 'r') as file:
     line = file.read()  # Lire tout le contenu
     if line == "True":
         import cupy as cp
