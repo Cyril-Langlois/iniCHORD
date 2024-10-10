@@ -83,8 +83,8 @@ class MainWindow(uiclass, baseclass):
         screen = app.screenAt(self.pos())
         geometry = screen.availableGeometry()
         
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.15))
-        self.resize(int(geometry.width() * 0.7), int(geometry.height() * 0.7))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
+        self.resize(int(geometry.width() * 0.5), int(geometry.height() * 0.5))
         self.screen = screen
         
 #%% Functions               
@@ -401,7 +401,7 @@ class MainWindow(uiclass, baseclass):
             self.profiles.plot(self.sigma_range,self.SSIM, pen=pen) # Plot of the SSIM Index
             self.profiles2.plot(self.sigma_range,self.MSE, pen=pen) # Plot of the MSE Index
 
-            styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+            styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles.setLabel("left", "SSIM value", **styles) # Import style for Y label
             self.profiles.setLabel("bottom", "Denoising parameter", **styles) # Import style for X label
             
@@ -432,7 +432,7 @@ class MainWindow(uiclass, baseclass):
             pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile
             self.profiles0.plot(self.expStack[:, self.x, self.y], pen=pen, name='Undenoised') # Plot of the profile
             
-            styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+            styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles0.setLabel("left", "Grayscale value", **styles) # Import style for Y label
             self.profiles0.setLabel("bottom", "Slice", **styles) # Import style for X label
             

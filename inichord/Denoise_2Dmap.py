@@ -29,7 +29,6 @@ class MainWindow(uiclass, baseclass):
         self.parent = parent
         
         self.OpenData.clicked.connect(self.loaddata) # Load data
-        # self.preview.clicked.connect(self.run_Denoising) # Run batch
         self.Push_validate.clicked.connect(self.extract_data)
         
         self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png')) 

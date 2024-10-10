@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>613</width>
-    <height>671</height>
+    <width>636</width>
+    <height>647</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,8 +56,8 @@ QPushButton, QPushButton:hover, QCheckBox {padding : 2px;}
 
 /* Gestion taille des QCheckBoxes */
 QCheckBox::indicator:unchecked, QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:checked, QCheckBox::indicator:checked:hover  {
-	width :15px;
-	height : 15px;
+	width :12px;
+	height : 12px;
 }
 
 QLabel {
@@ -156,6 +156,10 @@ QSlider::handle:horizontal {
     height: 30px;
     margin: -10px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
     border-radius: 3px;
+}
+
+QGroupBox {
+    font-weight: bold;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -232,6 +236,9 @@ QSlider::handle:horizontal {
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -294,6 +301,9 @@ QSlider::handle:horizontal {
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -346,6 +356,9 @@ QSlider::handle:horizontal {
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
                </property>
               </widget>
              </item>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>623</width>
-    <height>333</height>
+    <width>873</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,13 +30,13 @@ QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:butto
 QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, Line, QTextEdit, QSpinBox {color: rgb(0, 0, 0)}
 
 /* style des bordures 1 */
-QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QLabel, QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
 	border-style : outset;
 	min-width : 5em;
 }
 
 /* style des bordures 2 */
-QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
 	border-radius: 5px;
 	border-width: 1px;
 	border-color: gray;
@@ -56,8 +56,8 @@ QPushButton, QPushButton:hover, QCheckBox {padding : 2px;}
 
 /* Gestion taille des QCheckBoxes */
 QCheckBox::indicator:unchecked, QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:checked, QCheckBox::indicator:checked:hover  {
-	width :15px;
-	height : 15px;
+	width :12px;
+	height : 12px;
 }
 
 QLabel {
@@ -175,6 +175,12 @@ QSlider::handle:horizontal {
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>250</width>
+            <height>0</height>
+           </size>
+          </property>
          </widget>
         </item>
         <item>
@@ -197,25 +203,6 @@ QSlider::handle:horizontal {
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QCheckBox" name="denoised">
-          <property name="font">
-           <font>
-            <family>Noto Sans Cond</family>
-            <pointsize>12</pointsize>
-            <weight>50</weight>
-            <italic>false</italic>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string>Denoised</string>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="QCheckBox" name="mouseLock">
           <property name="font">
@@ -252,6 +239,9 @@ QSlider::handle:horizontal {
           </property>
           <property name="text">
            <string>Radius</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
@@ -291,6 +281,9 @@ QSlider::handle:horizontal {
           <property name="text">
            <string>Threshold</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -309,6 +302,25 @@ QSlider::handle:horizontal {
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="denoised">
+          <property name="font">
+           <font>
+            <family>Noto Sans Cond</family>
+            <pointsize>12</pointsize>
+            <weight>50</weight>
+            <italic>false</italic>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="text">
+           <string>Denoised</string>
           </property>
          </widget>
         </item>
@@ -404,7 +416,7 @@ QSlider::handle:horizontal {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>623</width>
+     <width>873</width>
      <height>20</height>
     </rect>
    </property>

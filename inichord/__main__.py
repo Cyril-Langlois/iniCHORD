@@ -15,9 +15,9 @@ from skimage.measure import regionprops
 import tifffile as tf
 
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 
 from inichord import General_Functions as gf
 from inichord import Profile_Modification as fct
@@ -122,12 +122,8 @@ class MainWindow(uiclass, baseclass):
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
         self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
-        self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.75))
+        self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.7))
         self.screen = screen
-        
-        # Icons sizes management for pop-up windows (QMessageBox)
-        self.pixmap = QPixmap("icons/Main_icon.png")
-        self.pixmap = self.pixmap.scaled(100, 100)
         
         self.Indexation_button.setVisible(False)
         
@@ -136,7 +132,7 @@ class MainWindow(uiclass, baseclass):
             self.Indexation_button.clicked.connect(self.Indexation_orientation) # Orientation indexation
         
 #%% Functions
-    try:    
+    try:
         def Indexation_orientation(self): # Run the indexing sub-gui
             self.w = Indexation_TSG.MainWindow(self)
             self.w.show()
@@ -145,8 +141,8 @@ class MainWindow(uiclass, baseclass):
 
     def closeEvent(self, event):
         msgBox = QMessageBox(self)
-        msgBox.setWindowTitle('Confirmation')
-        msgBox.setText("Voulez-vous vraiment quitter ?")
+        msgBox.setWindowTitle('Quit')
+        msgBox.setText("Do you really want to quit ?")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         
         # Changer la police
@@ -160,7 +156,33 @@ class MainWindow(uiclass, baseclass):
             event.accept()
         else:
             event.ignore()
+            
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
 
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+        
     def loaddata(self): # Allow to load image serie (3D stack or image sequence) and 2D map (KAD data)
         self.StackLoc, self.StackDir = gf.getFilePathDialog("Image stack (*.tiff)")  # Ask to open stack of images
         
@@ -690,7 +712,7 @@ class MainWindow(uiclass, baseclass):
             pen = pg.mkPen(color=self.color4, width=5) # Color and line width of the profile
             self.profiles.plot(self.Current_stack[:, self.x, self.y], pen=pen) # Plot of the profile
             
-            styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+            styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
             
             self.profiles.setLabel("left", "GrayScale value", **styles) # Import style for Y label
             self.profiles.setLabel("bottom", "Slice", **styles) # Import style for X label
@@ -906,14 +928,6 @@ class MainWindow(uiclass, baseclass):
         view.setBackgroundColor(self.color1)
         
         self.label_Treatment.setText("Treatment")
-        
-    def popup_message(self,title,text,icon):
-        msg = QMessageBox()
-        msg.setIconPixmap(self.pixmap)
-        msg.setWindowTitle(title)
-        msg.setText(text)
-        msg.setWindowIcon(QtGui.QIcon(icon))
-        msg.exec_()
 
 def main():
 
@@ -925,10 +939,4 @@ def main():
 		
 #%% Opening of the initial data    
 if __name__ == '__main__':
-	main()
-
-#        app = QApplication(sys.argv)
-#        w = MainWindow()
-#        w.show()
-#        app.setQuitOnLastWindowClosed(True)
-#        app.exec_()      
+	main() 

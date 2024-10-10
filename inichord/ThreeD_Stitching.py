@@ -19,7 +19,6 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtGui import QPixmap
 
 from inichord import General_Functions as gf
 
@@ -80,10 +79,6 @@ class MainWindow(uiclass, baseclass):
         self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.9), int(geometry.height() * 0.6))
         self.screen = screen
-        
-        # Icons sizes management for QMessageBox
-        self.pixmap = QPixmap("icons/Stitch_icon.png")
-        self.pixmap = self.pixmap.scaled(100, 100)
 
 #%% Functions
     def data_choice(self): # Allow to apply other treatment depending if the data is a KAD one

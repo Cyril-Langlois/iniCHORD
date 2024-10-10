@@ -147,7 +147,7 @@ class MainWindow(uiclass, baseclass):
             pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile
             self.profiles.plot(self.expStack[:, self.x, self.y], pen=pen, name='Undenoised') # Plot of the profile
             
-            styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+            styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles.setLabel("left", "Grayscale value", **styles) # Import style for Y label
             self.profiles.setLabel("bottom", "Slice", **styles) # Import style for X label
             

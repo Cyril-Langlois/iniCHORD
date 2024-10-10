@@ -57,7 +57,7 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.1))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.6))
         self.screen = screen
 

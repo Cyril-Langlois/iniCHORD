@@ -1,17 +1,23 @@
-import os
-import sys
+# import os
+# import sys
 import numpy as np
-from scipy import ndimage
-from scipy import fftpack, signal
+# from scipy import ndimage
+# from scipy import fftpack, signal
 from inichord import General_Functions as gf
 import scipy.io.wavfile
 import scipy.signal
 
-# Ouvrir le fichier en mode lecture
-with open('config.txt', 'r') as file:
-    line = file.read()  # Lire tout le contenu
-    if line == "True":
-        import cupy as cp
+from importlib.resources import files
+data = files('inichord').joinpath('config.txt').read_text()
+if data == "True":
+    import cupy as cp
+
+# # Open a file in read-only mode
+# with open('config.txt', 'r') as file:
+#     line = file.read()  # Lire tout le contenu
+#     if line == "True":
+#         import cupy as cp
+
 
 def cyclic(a, axProf):
     '''

@@ -5,7 +5,6 @@ Created on Wed Nov 22 23:26:20 2023
 @author: clanglois1
 """
 import os
-import sys
 
 from inspect import getsourcefile
 from os.path import abspath
@@ -15,10 +14,9 @@ import pyqtgraph as pg
 import tifffile as tf
 import time
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap
 
 from inichord import General_Functions as gf
 
@@ -96,10 +94,6 @@ class MainWindow(uiclass, baseclass):
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
         self.mouseLock.setVisible(False)
         
-        # Icons sizes management for QMessageBox
-        self.pixmap = QPixmap("icons/Restored_Icons.png")
-        self.pixmap = self.pixmap.scaled(100, 100)
-
         try:
             if hasattr(parent, 'KAD') : # Choice of KAD if only available
                 self.InitKAD_map = parent.KAD
@@ -128,9 +122,9 @@ class MainWindow(uiclass, baseclass):
 
 #%% Functions
     def show_choice_message(self): # Qmessage box for the try import at the initialization 
-        msg_box = QMessageBox()
+        msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Choice of the data")
-        msg_box.setText("Data to use :")
+        msg_box.setText("Data to use")
     
         btn_kad = msg_box.addButton("KAD map", QMessageBox.ActionRole)
         btn_contour = msg_box.addButton("Contour map", QMessageBox.ActionRole)

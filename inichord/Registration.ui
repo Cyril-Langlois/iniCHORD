@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>885</width>
+    <width>842</width>
     <height>692</height>
    </rect>
   </property>
@@ -56,8 +56,8 @@ QPushButton, QPushButton:hover, QCheckBox {padding : 2px;}
 
 /* Gestion taille des QCheckBoxes */
 QCheckBox::indicator:unchecked, QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:checked, QCheckBox::indicator:checked:hover  {
-	width :15px;
-	height : 15px;
+	width :12px;
+	height : 12px;
 }
 
 QLabel {
@@ -156,6 +156,10 @@ QSlider::handle:horizontal {
     height: 30px;
     margin: -10px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
     border-radius: 3px;
+}
+
+QGroupBox {
+    font-weight: bold;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -567,6 +571,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -1045,6 +1052,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </property>
             <property name="midLineWidth">
              <number>1</number>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1807,7 +1817,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>885</width>
+     <width>842</width>
      <height>20</height>
     </rect>
    </property>
