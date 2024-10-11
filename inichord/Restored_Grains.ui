@@ -104,8 +104,6 @@ QTextEdit{
 	border-color: black;
 }
 
-QLineEdit {font : 12pt &quot;Noto Sans Cond&quot;;}
-
 /* Gestion taille des QLineEdit */
 QLineEdit::indicator:unchecked, QLineEdit::indicator:unchecked:hover, QLineEdit::indicator:checked, QLineEdit::indicator:checked:hover  {
 	border-color: black;
@@ -674,7 +672,7 @@ QGroupBox {
              <property name="font">
               <font>
                <family>Noto Sans Cond</family>
-               <pointsize>12</pointsize>
+               <pointsize>10</pointsize>
                <weight>50</weight>
                <italic>false</italic>
                <bold>false</bold>

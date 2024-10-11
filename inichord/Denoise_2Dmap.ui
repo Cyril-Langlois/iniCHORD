@@ -425,10 +425,10 @@ font : 12pt &quot;Noto Sans Cond&quot;;
         <item>
          <widget class="QPushButton" name="Push_validate">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Export data to the main GUI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Save data in a given folder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Export data</string>
+           <string>Save data</string>
           </property>
           <property name="icon">
            <iconset>

@@ -15,28 +15,28 @@
   </property>
   <property name="styleSheet">
    <string notr="true">/* Couleur du fond, label, combobox, progressbar vide et spin box */
-QWidget, QLabel, QComboBox, QProgressBar, QSpinBox {background-color: rgb(253, 249, 248)}
+QWidget, QLabel, QComboBox, QProgressBar, QSpinBox, QDoubleSpinBox {background-color: rgb(253, 249, 248)}
 
 /* Couleur quand inactif */
-QPushButton:disabled, QComboBox:disabled, QSpinBox:disabled {background-color: rgba(243, 98, 64,150)}
+QPushButton:disabled, QComboBox:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled {background-color: rgba(243, 98, 64,150)}
 
 /* Couleur des boutons et des selecteurs */
 QPushButton, QComboBox::drop-down:button, QComboBox::down-arrow, QComboBox::down-arrow:disabled, QSpinBox::drop-down:button, QSpinBox::down-arrow, QSpinBox::down-arrow:disabled, QSpinBox::drop-up:button, QSpinBox::up-arrow, QSpinBox::up-arrow:disabled, QSlider::handle:horizontal, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::down-arrow, QDoubleSpinBox::down-arrow:disabled, QDoubleSpinBox::drop-up:button, QDoubleSpinBox::up-arrow, QDoubleSpinBox::up-arrow:disabled {background-color: rgb(226, 120, 95)}
 
 /* Couleur des bordures de même couleur que les boutons */
-QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:button {border-color: rgb(193, 167, 181)}
+QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:button, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::drop-up:button {border-color: rgb(193, 167, 181)}
 
 /* Couleur des textes */
-QLabel, QPushButton, QPushButton:hover, QComboBox, Line, QTextEdit, QSpinBox {color: rgb(0, 0, 0)}
+QLabel, QPushButton, QPushButton:hover, QComboBox, Line, QTextEdit, QSpinBox, QDoubleSpinBox {color: rgb(0, 0, 0)}
 
 /* style des bordures 1 */
-QLabel, QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
+QLabel, QPushButton, QPushButton:hover, QComboBox, QSpinBox, QDoubleSpinBox  {
 	border-style : outset;
 	min-width : 5em;
 }
 
 /* style des bordures 2 */
-QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox, QDoubleSpinBox  {
 	border-radius: 5px;
 	border-width: 1px;
 	border-color: gray;
@@ -46,10 +46,10 @@ QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
 QPushButton, QPushButton:hover, QCheckBox, QProgressBar {font: 12pt &quot;Noto Sans Cond&quot;}
 
 /* Font 2 */
-QComboBox, QTextEdit, QSpinBox, QLineEdit {font: 10pt &quot;Noto Sans Cond&quot;}
+QComboBox, QTextEdit, QSpinBox, QLineEdit, QDoubleSpinBox {font: 10pt &quot;Noto Sans Cond&quot;}
 
 /* Padding 1 */
-QLabel, QComboBox, QComboBox::down-arrow, QSpinBox, QSpinBox::down-arrow, QSpinBox::up-arrow {padding : 1px;}
+QLabel, QComboBox, QComboBox::down-arrow, QSpinBox, QSpinBox::down-arrow, QSpinBox::up-arrow, QDoubleSpinBox::down-arrow, QDoubleSpinBox::up-arrow {padding : 1px;}
 
 /* Padding 2 */
 QPushButton, QPushButton:hover, QCheckBox {padding : 2px;}
@@ -104,8 +104,6 @@ QTextEdit{
 	border-color: black;
 }
 
-QLineEdit {font : 12pt &quot;Noto Sans Cond&quot;;}
-
 /* Gestion taille des QLineEdit */
 QLineEdit::indicator:unchecked, QLineEdit::indicator:unchecked:hover, QLineEdit::indicator:checked, QLineEdit::indicator:checked:hover  {
 	border-color: black;
@@ -125,19 +123,19 @@ QProgressBar {
 	margin : 0.5px;
  }
 
-QSpinBox::drop-down:button, QSpinBox::drop-up:button {
+QSpinBox::drop-down:button, QSpinBox::drop-up:button, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::drop-up:button {
 	border-radius: 2px;
 	border-width: 1px;
 	width: 36px;
 }
 
-QSpinBox::down-arrow {
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 	image : url(icons/Arrow_down.png);
     width: 24px;
     height: 22px;
 }
 
-QSpinBox::up-arrow {
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
 	image : url(icons/Arrow_up.png);
     width: 24px;
     height: 22px;
@@ -346,7 +344,7 @@ QGroupBox {
                <property name="font">
                 <font>
                  <family>Noto Sans Cond</family>
-                 <pointsize>12</pointsize>
+                 <pointsize>10</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
@@ -510,6 +508,40 @@ QGroupBox {
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_12">
            <item>
+            <widget class="QCheckBox" name="full_range">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Noto Sans Cond</family>
+               <pointsize>12</pointsize>
+               <weight>50</weight>
+               <italic>false</italic>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Check the box if the range of search is the entire image.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Full images</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QLabel" name="Search_label">
@@ -573,40 +605,6 @@ QGroupBox {
             </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="full_range">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Noto Sans Cond</family>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Check the box if the range of search is the entire image.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string>Full images</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
               <widget class="QLabel" name="Threshold_label">
@@ -658,7 +656,7 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>77</width>
                  <height>0</height>
                 </size>
                </property>

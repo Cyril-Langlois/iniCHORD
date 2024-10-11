@@ -89,7 +89,6 @@ class MainWindow(uiclass, baseclass):
 
     def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
         datatype = data.dtype
-        print(datatype)
 
         if datatype == "float64":
             data = gf.convertToUint8(data)
@@ -130,24 +129,13 @@ class MainWindow(uiclass, baseclass):
         self.label_h.setText("Parameter h: " + str(self.param_h))
         self.run_Denoising()  
         
-    def extract_data(self):
-        self.parent.KAD = np.copy(self.denoised_map) # Copy in the main GUI
-        self.parent.StackList.append(self.denoised_map) # Add the data in the stack list
+    def extract_data(self): # Save data in a folder
         
-        Combo_text = '\u2022 Denoised 2D map'
-        Combo_data = self.denoised_map
-        self.parent.choiceBox.addItem(Combo_text, Combo_data) # Add the data in the QComboBox
-
-        self.parent.displayDataview(self.parent.KAD) # Display the labeled grain
-        self.parent.choiceBox.setCurrentIndex(self.parent.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
-
-        self.parent.Info_box.ensureCursorVisible()
-        self.parent.Info_box.insertPlainText("\n \u2022 Denoised 2D map.") 
+        self.denoised_map = np.flip(self.denoised_map, 0)
+        self.denoised_map = np.rot90(self.denoised_map, k=1, axes=(1, 0))
         
-        self.parent.Save_button.setEnabled(True)
-        self.parent.Reload_button.setEnabled(True)
-        self.parent.choiceBox.setEnabled(True)
-        
+        gf.Saving_img_or_stack(self.denoised_map)
+    
         self.close()
 
     def defaultIV(self):

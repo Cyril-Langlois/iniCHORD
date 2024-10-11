@@ -10,7 +10,7 @@ import pyqtgraph as pg
 import tifffile as tf
 import time
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 
@@ -127,6 +127,32 @@ class MainWindow(uiclass, baseclass):
         self.screen = screen
         
 #%% Functions
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+
     def show_choice_message(self): # Qmessage box for the try import at the initialization 
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Choice of the data")
@@ -159,7 +185,7 @@ class MainWindow(uiclass, baseclass):
         
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
         if checkimage.ndim != 2: # Check if the data is a KAD map (2D array)
-            self.parent.popup_message("Grain segmentation","Please import a 2D array",'icons/Grain_Icons.png')
+            self.popup_message("Grain segmentation","Please import a 2D array",'icons/Grain_Icons.png')
             return
         
         self.data_choice()
@@ -227,7 +253,7 @@ class MainWindow(uiclass, baseclass):
             self.Grain_labeling() # Compute a labeled map (undenoised)
 
     def high_auto_set(self):
-            self.parent.popup_message("Grain boundaries determination","Labeling step is not apply to limit calculation times (large data map).",'icons/Grain_Icons.png')
+            self.popup_message("Grain boundaries determination","Labeling step is not apply to limit calculation times (large data map).",'icons/Grain_Icons.png')
             
             self.spinBox_filter.setValue(0.005)
             self.ClassBox.setValue(3)
@@ -409,7 +435,7 @@ class MainWindow(uiclass, baseclass):
         self.displaylabels(self.Corrected_label_img) # Display the labeled image
             
         # Finished message
-        self.parent.popup_message("Grain boundaries determination","Properties computed.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries determination","Properties computed.",'icons/Grain_Icons.png')
         
     def extract_value_list(self): # Extract informations       
         # Equivalent diameter data 
@@ -594,7 +620,7 @@ class MainWindow(uiclass, baseclass):
             self.filter_labeldiameter_metric_cleaned = self.zero_out_positions(self.filter_labeldiameter_metric, zero_positions)
 
         # Finished message
-        self.parent.popup_message("Grain boundaries determination","Border excluded.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries determination","Border excluded.",'icons/Grain_Icons.png')
 
     def get_border_positions(self,image):# Fonction pour obtenir les positions des pixels des bordures
         border_positions = []
@@ -656,7 +682,7 @@ class MainWindow(uiclass, baseclass):
                 for j in range (len(regions)) :
                     moyen_profil[j][i]=regions[j].mean_intensity 
         except:
-            self.parent.popup_message("Grain boundaries determination","Computation of clustered profiles failed. Check for data.",'icons/Grain_Icons.png')
+            self.popup_message("Grain boundaries determination","Computation of clustered profiles failed. Check for data.",'icons/Grain_Icons.png')
             return
         
         # Creation of the clustered profiles list
@@ -770,7 +796,7 @@ class MainWindow(uiclass, baseclass):
             np.savetxt(Metric_SubPathDir + "/Filtered_grain_size_list_µm.csv", self.filtered_diameter_metric, delimiter = ",")
 
         # Finished message
-        self.parent.popup_message("Grain boundaries determination","Saving process is over.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries determination","Saving process is over.",'icons/Grain_Icons.png')
 
     def validate_data(self): # Push labeled image in the main GUI
         self.parent.Label_image = np.copy(self.Corrected_label_img) # Copy in the main GUI
@@ -793,7 +819,7 @@ class MainWindow(uiclass, baseclass):
         self.parent.choiceBox.setEnabled(True)
         
         # Finished message
-        self.parent.popup_message("Grain boundaries determination","Labeled image has been exported to the main GUI.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries determination","Labeled image has been exported to the main GUI.",'icons/Grain_Icons.png')
 
     def displayExpKAD(self, series): # Display of initial map
         self.KADSeries.addItem(self.crosshair_v1, ignoreBounds=True)

@@ -13,7 +13,8 @@ from pystackreg import StackReg
 
 from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
+from PyQt5 import QtCore
 
 from inichord import General_Functions as gf
 
@@ -114,6 +115,32 @@ class MainWindow(uiclass, baseclass):
         self.screen = screen
 
 #%% Functions : initialization
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+
     def checking(self): # Allow to define if registration must be applied to the raw stack or to the pretreated one
         if self.checkBox.isChecked() == True:
             self.checkBox.clicked.connect(self.Pre_notreatment) # Registration on the raw stack
@@ -210,7 +237,7 @@ class MainWindow(uiclass, baseclass):
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
         
         if len(self.Pre_treatment_stack_Remout) < 5:
-            self.parent.popup_message("Registration","A minimum of 5 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
+            self.popup_message("Registration","A minimum of 5 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
             return
         
         else: # Here, remouve outliers, Gaussian blur and sobel factor are applied
@@ -387,7 +414,7 @@ class MainWindow(uiclass, baseclass):
             self.Push_valid.setEnabled(True) # Validation button is enables 
 
     def Registration_coreg_step(self):  # Step to perform Co-registration
-        self.parent.popup_message("Registration","Only homographic transformation will be used for the Co-registration approach",'icons/Main_icon.png')
+        self.popup_message("Registration","Only homographic transformation will be used for the Co-registration approach",'icons/Main_icon.png')
 
         StackLoc_doppel, StackDir_doppel  = gf.getFilePathDialog("Choose the already aligned stack that will be used.' (*.tiff)")
         self.doppelganger_stack = tf.TiffFile(StackLoc_doppel[0]).asarray()       

@@ -14,8 +14,7 @@ import pyqtgraph as pg
 import tifffile as tf
 import time
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
-
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
 from inichord import General_Functions as gf
@@ -121,6 +120,32 @@ class MainWindow(uiclass, baseclass):
         self.screen = screen
 
 #%% Functions
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+        
     def show_choice_message(self): # Qmessage box for the try import at the initialization 
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Choice of the data")
@@ -153,7 +178,7 @@ class MainWindow(uiclass, baseclass):
         
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
         if checkimage.ndim != 2: # Check if the data is a 2D array
-            self.parent.popup_message("Restored grain determination","Please import a 2D array",'icons/Restored_Icons.png')
+            self.popup_message("Restored grain determination","Please import a 2D array",'icons/Restored_Icons.png')
             return
         
         self.data_choice()
@@ -404,7 +429,7 @@ class MainWindow(uiclass, baseclass):
             file.write("\nOtsu n°2 class: "+ str(self.Otsu2_Value) + "\nThresholded n°2 classes (keep values higher than): " + str(self.Binary2_Value))     
             file.write("\nRestored fraction: "+ str(self.fraction_mean) + ' \u00B1 ' + str(self.fraction_std) + ' % ')
 
-        self.parent.popup_message("Restored grain determination","Saving process is over.",'icons/Restored_Icons.png')
+        self.popup_message("Restored grain determination","Saving process is over.",'icons/Restored_Icons.png')
 
     def displayExpKAD(self, series): # Display of initial KAD map
         self.KADSeries.addItem(self.crosshair_v1, ignoreBounds=True)

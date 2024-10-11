@@ -17,7 +17,6 @@ import tifffile as tf
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt
 
 from inichord import General_Functions as gf
 from inichord import Profile_Modification as fct
@@ -360,9 +359,6 @@ class MainWindow(uiclass, baseclass):
         elif self.choice == "\u2022 Contour map": # If the data is the KAD map
             self.label_Treatment.setText("Contour map")
             self.displayDataview(self.contour_map) # Display KAD map on the Treatment ImageView (dataview)
-        elif self.choice == "\u2022 Denoised 2D map": # If the data is the KAD map
-            self.label_Treatment.setText("Denoised map")
-            self.displayDataview(self.KAD) # Display KAD map on the Treatment ImageView (dataview)
         elif self.choice == "\u2022 Grain labeling": # If the data is the grains labeling map
             self.label_Treatment.setText("Grain labels")
             self.displayDataview(self.Label_image) # Display the labeled image map on the Treatment ImageView (dataview)
@@ -591,7 +587,7 @@ class MainWindow(uiclass, baseclass):
                 self.popup_message("GRDD-GDS","GRDD-GDS fail. Check the exactness of the imports",'icons/Main_icon.png')
                 return
             
-        # Case where image serie has been imported bu labeled image is missing
+        # Case where image serie has been imported but labeled image is missing
         elif self.flag_image == True and self.flag_labeling == False: 
             self.popup_message("GRDD-GDS","Please import the labeled image",'icons/Main_icon.png')
 
@@ -614,6 +610,7 @@ class MainWindow(uiclass, baseclass):
             
         # Case where serie and labeled image are presents
         elif self.flag_image == True and self.flag_labeling == True:
+            self.image = np.copy(self.Current_stack)
             self.GRDD_GDS() # Run the GRDD-GDS computation
             
     def GRDD_GDS(self): # Compute the GRDD and the GDS of the data imported

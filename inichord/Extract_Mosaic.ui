@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>339</width>
-    <height>430</height>
+    <width>347</width>
+    <height>429</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -77,6 +77,12 @@ QLabel {
 	border-width : 0px;
 	border-color : black;
 	font : 14pt &quot;Noto Sans Cond&quot;;
+}
+
+/* Gestion taille des QCheckBoxes */
+QCheckBox::indicator:unchecked, QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:checked, QCheckBox::indicator:checked:hover  {
+	width :12px;
+	height : 12px;
 }
 
 QPushButton:hover {background-color: rgb(243, 98, 64);}
@@ -442,6 +448,40 @@ font : 12pt &quot;Noto Sans Cond&quot;;
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="Delete_last">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Noto Sans Cond</family>
+               <pointsize>12</pointsize>
+               <weight>50</weight>
+               <italic>false</italic>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Delete the last image of each stack (only for indexation)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Delete last images (for indexation)</string>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="Xtract_series">
@@ -845,7 +885,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>339</width>
+     <width>347</width>
      <height>20</height>
     </rect>
    </property>
