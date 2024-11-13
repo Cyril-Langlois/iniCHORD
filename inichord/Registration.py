@@ -10,6 +10,7 @@ import cv2
 import largestinteriorrectangle as lir
 import scipy.ndimage as sci
 from pystackreg import StackReg
+import skimage as ski
 
 from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
@@ -27,7 +28,7 @@ class MainWindow(uiclass, baseclass):
         super().__init__()
         self.parent = parent
         self.setupUi(self)
-        
+
         self.setWindowIcon(QtGui.QIcon('icons/alignment_icon.png'))
         
         self.expStack = parent.Current_stack
@@ -38,11 +39,15 @@ class MainWindow(uiclass, baseclass):
         
         self.type = self.expStack.dtype
 
-        if self.type == "uint16" or self.type == "uint32" or self.type == "float64" or self.type == "float32":
-            self.expStack = gf.convertToUint8(self.expStack) # Necessary for computation
-            self.Pre_treatment_stack = gf.convertToUint8(self.Pre_treatment_stack)
-            self.Aligned_stack = gf.convertToUint8(self.Pre_treatment_stack)
-
+        # if self.type == "uint16" or self.type == "uint32" or self.type == "float64" or self.type == "float32":
+        #     self.expStack = gf.convertToUint8(self.expStack) # Necessary for computation
+        #     self.Pre_treatment_stack = gf.convertToUint8(self.Pre_treatment_stack)
+        #     self.Aligned_stack = gf.convertToUint8(self.Pre_treatment_stack)
+       
+        self.im_reference = 0 # n° of the reference image (for sequential approach)
+        self.iter_value = 2000 # Number of iteration to converged
+        self.thres_value = 0.000001 # Convergence value 
+        
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_output2 = np.copy(self.Pre_treatment_stack)
@@ -54,10 +59,6 @@ class MainWindow(uiclass, baseclass):
 
         self.blur_value = int(self.Blur_box.currentText())
         self.sobel_value = int(self.Sobel_box.currentText())
-
-        self.im_reference = 0 # n° of the reference image (for sequential approach)
-        self.iter_value = 2000 # Number of iteration to converged
-        self.thres_value = 0.000001 # Convergence value 
         
         self.img_number = len(self.expStack)
         self.stack_height = len(self.expStack[0])
@@ -346,17 +347,23 @@ class MainWindow(uiclass, baseclass):
         self.warp_mode = self.wrapmode
         if self.warp_mode  == cv2.MOTION_HOMOGRAPHY:
             self.warp =  np.eye(3, 3, dtype=np.float32) # Matrice pour le stockage des transformations homographiques
+            # self.motion_type = "MOTION_HOMOGRAPHY"
         else :
             self.warp =  np.eye(2, 3, dtype=np.float32) # Matrice pour le stockage des transformations affines
+            # self.motion_type="MOTION_AFFINE"
 
-        self.im1 = self.Pre_treatment_stack_output2[self.im_reference,:,:] # Définition de la slice de référence
-        self.im2 = self.Pre_treatment_stack_output2[self.im_reference +1,:,:]
-        self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
+        # Conversions en 8 bits pour findTransformECC
+        self.im1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence
+        self.im2 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference +1,:,:])# Image qui doit être alignée
         
+        self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
+
         self.Recap_cc = []
+        
 
         try :   
             self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            # self.cc, self.warp = ski.find_transform_ECC(self.im1, self.im2)#, self.warp, self.motion_type, self.iter_value, self.thres_value,gauss_filter_size = self.blur_value)
             self.cc = '%.3f'%(self.cc)
         except :
             QApplication.processEvents()
@@ -364,7 +371,7 @@ class MainWindow(uiclass, baseclass):
 
         self.CC_info.setText('Correlation coefficient: ' + self.cc)
 
-    def Choice_method(self): # Define the program that must be use to perform registration (between sequential, incremental and coregistration)
+    def Choice_method(self): # Define the program that must be used to perform registration (between sequential, incremental and coregistration)
         self.choice = self.choiceBox.currentText()
         
         if self.choice == 'Sequential':
@@ -461,7 +468,7 @@ class MainWindow(uiclass, baseclass):
             
             self.Aligned_stack = np.zeros((len(self.Pre_treatment_stack_output2), len(self.Pre_treatment_stack_output2[0]), len(self.Pre_treatment_stack_output2[0][0])), dtype = np.float32)
 
-            self.im1 = self.Pre_treatment_stack_output2[self.im_reference,:,:] # Définition de la slice de référence
+            self.im1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence
     
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
             
@@ -475,38 +482,69 @@ class MainWindow(uiclass, baseclass):
                 self.warp =  np.eye(2, 3, dtype=np.float32) # Matrice pour le stockage des transformations affines
                 self.Recap_warp = np.zeros((len(self.expStack),len(self.warp),len(self.warp[0])))
     
-            try :
-                for i in np.arange(0,self.img_number, 1):
+            # try :
+            #     for i in np.arange(0,self.img_number, 1):
     
-                    if i == self.im_reference:
-                        self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
-                    else :
-                        self.im2 = self.Pre_treatment_stack_output2[i,:,:]
-                        # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                        self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            #         if i == self.im_reference:
+            #             self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
+            #         else :
+            #             self.im2 = gf.convertToUint8(self.Pre_treatment_stack_output2[i,:,:])
+            #             # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
+            #             self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            #             # self.cc, self.warp = ski.find_transform_ECC(self.im1, self.im2, self.warp, self.motion_type, self.iter_value, self.thres_value,gauss_filter_size = self.blur_value)
                         
-                        # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
-                        self.Recap_warp[i,:,:] = self.warp
-                        self.Recap_cc.append(self.cc) 
-                        self.cc = '%.3f'%(self.cc)
                         
-                        QApplication.processEvents()                    
-                        self.ValSlice = i
-                        self.progression_bar()
+            #             # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
+            #             self.Recap_warp[i,:,:] = self.warp
+            #             self.Recap_cc.append(self.cc)
+            #             self.cc = '%.3f'%(self.cc)
                         
-                        self.Recap_cc_IRT = np.vstack(self.Recap_cc)
-                        self.drawRecapCC(self.Recap_cc_IRT)
+            #             QApplication.processEvents()                    
+            #             self.ValSlice = i
+            #             self.progression_bar()
+                        
+            #             self.Recap_cc_IRT = np.vstack(self.Recap_cc)
+            #             self.drawRecapCC(self.Recap_cc_IRT)
                             
-                        if self.warp_mode  == cv2.MOTION_HOMOGRAPHY:
-                            self.Aligned_stack[i,:,:] = cv2.warpPerspective (self.expStack[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)          
-                            self.Pre_treatment_stack_output2[i,:,:] = cv2.warpPerspective (self.Pre_treatment_stack_output2[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
-                        else :
-                            self.Aligned_stack[i,:,:] = cv2.warpAffine (self.expStack[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
-                            self.Pre_treatment_stack_output2[i,:,:] = cv2.warpAffine (self.Pre_treatment_stack_output2[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+            #             if self.warp_mode  == cv2.MOTION_HOMOGRAPHY:
+            #                 self.Aligned_stack[i,:,:] = cv2.warpPerspective (self.expStack[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)          
+            #                 self.Pre_treatment_stack_output2[i,:,:] = cv2.warpPerspective (self.Pre_treatment_stack_output2[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+            #             else :
+            #                 self.Aligned_stack[i,:,:] = cv2.warpAffine (self.expStack[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+            #                 self.Pre_treatment_stack_output2[i,:,:] = cv2.warpAffine (self.Pre_treatment_stack_output2[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
     
-            except :
-                QApplication.processEvents()
-                self.textEdit.insertPlainText("\n Sequential registration failed. Try other parameters.")
+            # except :
+            #     QApplication.processEvents()
+            #     self.textEdit.insertPlainText("\n Sequential registration failed. Try other parameters.")
+            for i in np.arange(0,self.img_number, 1):
+
+                if i == self.im_reference:
+                    self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
+                else :
+                    self.im2 = gf.convertToUint8(self.Pre_treatment_stack_output2[i,:,:])
+                    # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
+                    self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+                    # self.cc, self.warp = ski.find_transform_ECC(self.im1, self.im2, self.warp, self.motion_type, self.iter_value, self.thres_value,gauss_filter_size = self.blur_value)
+                    print(self.cc)
+                    
+                    # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
+                    self.Recap_warp[i,:,:] = self.warp
+                    self.Recap_cc.append(self.cc)
+                    self.cc = '%.3f'%(self.cc)
+                    
+                    QApplication.processEvents()                    
+                    self.ValSlice = i
+                    self.progression_bar()
+                    
+                    self.Recap_cc_IRT = np.vstack(self.Recap_cc)
+                    self.drawRecapCC(self.Recap_cc_IRT)
+                        
+                    if self.warp_mode  == cv2.MOTION_HOMOGRAPHY:
+                        self.Aligned_stack[i,:,:] = cv2.warpPerspective (self.expStack[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)          
+                        self.Pre_treatment_stack_output2[i,:,:] = cv2.warpPerspective (self.Pre_treatment_stack_output2[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+                    else :
+                        self.Aligned_stack[i,:,:] = cv2.warpAffine (self.expStack[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+                        self.Pre_treatment_stack_output2[i,:,:] = cv2.warpAffine (self.Pre_treatment_stack_output2[i,:,:], self.warp, ( self.stack_width,self.stack_height), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
             
             self.Recap_cc = np.vstack(self.Recap_cc)
     
@@ -571,6 +609,7 @@ class MainWindow(uiclass, baseclass):
                         self.im2 = self.Pre_treatment_stack_output2[i,:,:]
                         # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
                         self.cc, self.warp = cv2.findTransformECC(self.im1bis, self.im2, self.warp, self.warp_mode, self.criteria)
+                        # self.cc, self.warp = ski.find_transform_ECC(self.im1bis, self.im2, self.warp, self.motion_type, self.iter_value, self.thres_value,gauss_filter_size = self.blur_value)
                         
                         # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                         self.Recap_warp[i,:,:] = self.warp
@@ -631,6 +670,7 @@ class MainWindow(uiclass, baseclass):
 
                     # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
                     self.cc, self.warp = cv2.findTransformECC(self.im_doppel, self.im_stack, self.warp, self.warp_mode, self.criteria)
+                    # self.cc, self.warp = ski.find_transform_ECC(self.im_doppel, self.im_stack, self.warp, self.motion_type, self.iter_value, self.thres_value,gauss_filter_size = self.blur_value)
                         
                     # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                     self.Recap_warp[i,:,:] = self.warp
