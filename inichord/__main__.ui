@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>860</width>
-    <height>712</height>
+    <width>909</width>
+    <height>788</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -225,7 +225,7 @@ QGroupBox {
             </property>
             <property name="minimumSize">
              <size>
-              <width>96</width>
+              <width>116</width>
               <height>0</height>
              </size>
             </property>
@@ -304,7 +304,7 @@ QGroupBox {
             </property>
             <property name="minimumSize">
              <size>
-              <width>96</width>
+              <width>116</width>
               <height>0</height>
              </size>
             </property>
@@ -342,7 +342,7 @@ QGroupBox {
             </property>
             <property name="minimumSize">
              <size>
-              <width>96</width>
+              <width>116</width>
               <height>0</height>
              </size>
             </property>
@@ -394,7 +394,7 @@ QGroupBox {
              </property>
              <property name="minimumSize">
               <size>
-               <width>96</width>
+               <width>116</width>
                <height>0</height>
               </size>
              </property>
@@ -432,7 +432,7 @@ QGroupBox {
              </property>
              <property name="minimumSize">
               <size>
-               <width>96</width>
+               <width>116</width>
                <height>0</height>
               </size>
              </property>
@@ -515,7 +515,7 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>116</width>
                  <height>0</height>
                 </size>
                </property>
@@ -555,7 +555,7 @@ QGroupBox {
              </property>
              <property name="minimumSize">
               <size>
-               <width>96</width>
+               <width>116</width>
                <height>0</height>
               </size>
              </property>
@@ -633,7 +633,12 @@ QGroupBox {
                </property>
                <item>
                 <property name="text">
-                 <string>Bleach correction</string>
+                 <string>AVG map</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>MED map</string>
                 </property>
                </item>
                <item>
@@ -654,6 +659,11 @@ QGroupBox {
                <item>
                 <property name="text">
                  <string>Denoise 2D map</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Bleach correction</string>
                 </property>
                </item>
                <item>
@@ -703,7 +713,7 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>116</width>
                  <height>0</height>
                 </size>
                </property>
@@ -783,7 +793,7 @@ QGroupBox {
              </property>
              <property name="minimumSize">
               <size>
-               <width>79</width>
+               <width>94</width>
                <height>0</height>
               </size>
              </property>
@@ -834,7 +844,7 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>116</width>
                  <height>0</height>
                 </size>
                </property>
@@ -872,7 +882,7 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>116</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1599,8 +1609,8 @@ QGroupBox {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>860</width>
-     <height>20</height>
+     <width>909</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>
