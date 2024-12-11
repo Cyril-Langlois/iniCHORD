@@ -5,7 +5,7 @@ import numpy as np
 # from scipy import fftpack, signal
 from inichord import General_Functions as gf
 import scipy.io.wavfile
-import scipy.signal
+from scipy.signal import savgol_filter, filtfilt, butter
 
 from importlib.resources import files
 data = files('inichord').joinpath('config.txt').read_text()
@@ -51,16 +51,21 @@ def fft_profil(arr2, axProf): # Useless
 
     return Var_fft 
 
-def derivee(a, nbderiv, ax = 1):
-    return np.diff(a, nbderiv, axis = ax)
+def derivee(a, nbderiv, ax = 1, sv = False):
+    
+    if sv:
+        return savgol_filter(a, window_length = 5, polyorder = 2, deriv = nbderiv, axis = ax)
+    else:
+        return np.diff(a, nbderiv, axis = ax)  
+    
 
 def reshapeProfilesInLine(profiles, size):
     lines = int(profiles.size / size)
     return profiles.reshape(lines, size)
 
 def Butterworth(arr2, axProf, pass_filter, N_order, Wn_order):
-    b, a = scipy.signal.butter(N_order, Wn_order, pass_filter)
-    arrHP = scipy.signal.filtfilt(b, a, arr2, axProf)
+    b, a = butter(N_order, Wn_order, pass_filter)
+    arrHP = filtfilt(b, a, arr2, axProf)
     
     return arrHP
 
@@ -171,12 +176,19 @@ def Profile_modifier(array2D, Workflow, normType, axProf):
     ----------
     array2D : TYPE numpy array 2D or Cupy array 2D
         DESCRIPTION : les profils sont rangés en ligne ou en colonne
+    
+    Workflow : lisdt of list. Each list containes one modification with its 
+    parameters. All modifications are applied one after one.
+    
+    normtype : string describing the normalization applied to the profiles
+        among "centered euclidian" or "euclidian_std"
+    
     ax : TYPE integer
         DESCRIPTION : décrit selon quel axe les profils s'étendent.
         Si une ligne représente un profil, alors il faut mettre axe 1
         Si une colonne représente un profil, alors il faut mettre axe 0
 
-    Returns un tableau de même type avec des profils de dimension n-1, 
+    Returns un tableau de même type avec des profils de même dimension, 
         rangés de la même manière et normalisés en euclidien centré
     -------
     None.
@@ -190,9 +202,15 @@ def Profile_modifier(array2D, Workflow, normType, axProf):
     for i in Workflow:
         if i[0] == 'Diff':
             if i[1] != 0:
-                array2D = cyclic(array2D, axProf)
-                array2D = derivee(array2D, i[1], ax = axProf)
+                
+                if len(i) == 3:
+                    array2D = derivee(array2D, i[1], ax = axProf, sv = True)
+                else:
+                    array2D = cyclic(array2D, axProf)
+                    array2D = derivee(array2D, i[1], ax = axProf, sv = False)
                 array2D = centeredEuclidianNorm(array2D, ax = axProf)
+            
+                
         elif i[0] == 'FFT':
             array2D = fft_profil(array2D, axProf)
             # array2D = centeredEuclidianNorm(array2D, ax = axProf)
