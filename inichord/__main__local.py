@@ -43,7 +43,7 @@ if "cupy" in sys.modules:
     from indexGPU import Indexation_GUI as Indexation_TSG
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__local.ui") 
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -61,6 +61,7 @@ class MainWindow(uiclass, baseclass):
         self.color6 = (193, 167, 181,50) # Brush Color for legend in plot
 
         self.Open_data.clicked.connect(self.loaddata) # Load image series or 2D array (for KAD map)
+        self.Eight_bits_button.clicked.connect(self.convert_to_8bits)
         self.Edit_tools_button.clicked.connect(self.stackmodifier) # Modification of image series (cropping, binning, slicing)
         self.Registration_button.clicked.connect(self.Stackregistration) # Stack registration
         self.Background_remover_button.clicked.connect(self.FFTFiltering) # FFT background substraction
@@ -97,6 +98,7 @@ class MainWindow(uiclass, baseclass):
         # Buttons are not enables except [Open data ; Tool_choice ; Run button ; Indexation]
         self.Edit_tools_button.setEnabled(False)
         self.Registration_button.setEnabled(False)
+        self.Eight_bits_button.setEnabled(False)
         self.Background_remover_button.setEnabled(False)
         self.Remove_outliers_button.setEnabled(False)
         self.Manual_denoising_button.setEnabled(False)
@@ -138,6 +140,17 @@ class MainWindow(uiclass, baseclass):
             self.w.show()
     except:
         pass
+    
+    def convert_to_8bits(self):
+        if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)): #if not 8bits
+            self.eight_bits_img = gf.convertToUint8(self.Current_stack)
+            self.StackList.append(self.eight_bits_img)
+            self.Current_stack = self.eight_bits_img
+            self.Info_box.insertPlainText("\n \u2022 Data has been converted to 8 bits.")
+            self.Eight_bits_button.setEnabled(False)
+        else:
+            self.Info_box.insertPlainText("\n \u2022 Data was already 8 bits type.")
+        
 
     def closeEvent(self, event):
         msgBox = QMessageBox(self)
@@ -200,7 +213,7 @@ class MainWindow(uiclass, baseclass):
                     self.choiceBox.clear() # Clean the choiceBox
                     
                 try: # Delete of image series and current stack is any
-                    del(self.image,self.Current_stack)
+                    del(self.image, self.Current_stack)
                 except:
                     pass
 
@@ -308,6 +321,7 @@ class MainWindow(uiclass, baseclass):
             
             # Activation of the widgets that were disable
             self.Edit_tools_button.setEnabled(True)
+            
             self.Registration_button.setEnabled(True)
             self.Background_remover_button.setEnabled(True)
             self.Remove_outliers_button.setEnabled(True)
@@ -317,6 +331,9 @@ class MainWindow(uiclass, baseclass):
             self.Reload_button.setEnabled(True)
             self.Choice_denoiser.setEnabled(True)
             self.choiceBox.setEnabled(True)
+            
+            if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)) :
+                self.Eight_bits_button.setEnabled(True)
             
             self.Tool_choice.setCurrentIndex(0) 
         except: # If the try is not possible, then nothing happens
@@ -466,6 +483,20 @@ class MainWindow(uiclass, baseclass):
             
             self.Info_box.ensureCursorVisible()
             self.Info_box.insertPlainText("\n \u2022 STD map has been computed.")
+            self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+            
+        elif self.Toolchoice == 'AVG map':
+            self.avg_image = np.nanmean(self.Current_stack,0) # Creation of the STD map
+            self.displayDataview(self.avg_image)
+            
+            self.StackList.append(self.avg_image)
+            
+            Combo_text = '\u2022 AVG map'
+            Combo_data = self.avg_image
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            
+            self.Info_box.ensureCursorVisible()
+            self.Info_box.insertPlainText("\n \u2022 AVG map has been computed.")
             self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
           
         elif self.Toolchoice == 'Bleach correction': # Application of bleach correction if surface contamination

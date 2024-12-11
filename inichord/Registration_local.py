@@ -328,6 +328,7 @@ class MainWindow(uiclass, baseclass):
      
         else :   
             self.Pre_treatment_doppelstack_output2 = self.Pre_treatment_doppelstack
+            
 
     def Coefficient_estim(self): # Estim corrcoeff between the two first image (using pretreated slices and homography)
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
@@ -357,18 +358,19 @@ class MainWindow(uiclass, baseclass):
         else :
             self.warp =  np.eye(2, 3, dtype=np.float32) # Matrice pour le stockage des transformations affines
         
-        eightbit_refStack1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence)
-        self.im1 = eightbit_refStack1
+        #eightbit_refStack1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence)
+        #self.im1 = eightbit_refStack1
         
-        eightbit_refStack2 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference +1,:,:])
-        self.im2 = eightbit_refStack2
-        print(f"type self.im2 = {type(self.im2)}")
+        #eightbit_refStack2 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference +1,:,:])
+        #self.im2 = eightbit_refStack2
+        #print(f"type self.im2 = {type(self.im2)}")
         self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
         print(self.criteria)
         self.Recap_cc = []
 
         try :   
-            self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            #self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            self.ccAndTransformECC(self.Pre_treatment_stack_output2[self.im_reference,:,:], self.Pre_treatment_stack_output2[self.im_reference + 1,:,:])
             self.cc = '%.3f'%(self.cc)
             print(f"self.cc = {self.cc}")
         except :
@@ -441,6 +443,12 @@ class MainWindow(uiclass, baseclass):
         self.drawRecapCC(self.Recap_cc)
         self.textEdit.insertPlainText("\n Coregistration is complete.")
         self.Push_valid.setEnabled(True) # Validation button is enables 
+        
+    def ccAndTransformECC(self, img1, img2): #implemented for 16 bits use
+        #converts in 8 bits the 2 images that serves for findTransformECC, actualizes cc and warp
+        self.im1 = gf.convertToUint8(img1)
+        self.im2 = gf.convertToUint8(img2)
+        self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
 
     def Seq_registration(self): # Sequential registration
         QApplication.processEvents()
@@ -475,8 +483,8 @@ class MainWindow(uiclass, baseclass):
             
             self.Aligned_stack = np.zeros((len(self.Pre_treatment_stack_output2), len(self.Pre_treatment_stack_output2[0]), len(self.Pre_treatment_stack_output2[0][0])), dtype = np.float32)
             
-            eightbit_refStack1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence
-            self.im1 = eightbit_refStack1
+            #eightbit_refStack1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence
+            #self.im1 = eightbit_refStack1
     
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
             print(f" seq_reg criteria : {self.criteria}")
@@ -496,10 +504,11 @@ class MainWindow(uiclass, baseclass):
                     if i == self.im_reference:
                         self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
                     else :
-                        eightbit_refStack2 = gf.convertToUint8(self.Pre_treatment_stack_output2[i,:,:])
-                        self.im2 = eightbit_refStack2
+                        #eightbit_refStack2 = gf.convertToUint8(self.Pre_treatment_stack_output2[i,:,:])
+                        #self.im2 = eightbit_refStack2
                         # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                        self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+                        #self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+                        self.ccAndTransformECC(self.Pre_treatment_stack_output2[self.im_reference,:,:], self.Pre_treatment_stack_output2[i,:,:])
                         
                         # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                         self.Recap_warp[i,:,:] = self.warp
@@ -584,10 +593,11 @@ class MainWindow(uiclass, baseclass):
                     if i == self.im_reference:
                         self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
                     else :
-                        self.im1bis = self.Pre_treatment_stack_output2[i-1,:,:] # Label de la slice de référence (glissante)
-                        self.im2 = self.Pre_treatment_stack_output2[i,:,:]
+                        #self.im1bis = self.Pre_treatment_stack_output2[i-1,:,:] # Label de la slice de référence (glissante)
+                        #self.im2 = self.Pre_treatment_stack_output2[i,:,:]
                         # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                        self.cc, self.warp = cv2.findTransformECC(self.im1bis, self.im2, self.warp, self.warp_mode, self.criteria)
+                        #self.cc, self.warp = cv2.findTransformECC(self.im1bis, self.im2, self.warp, self.warp_mode, self.criteria)
+                        self.ccAndTransformECC(self.Pre_treatment_stack_output2[i-1,:,:], self.Pre_treatment_stack_output2[i,:,:])
                         
                         # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                         self.Recap_warp[i,:,:] = self.warp
@@ -643,11 +653,12 @@ class MainWindow(uiclass, baseclass):
                 if i == self.im_reference:
                     self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
                 else :
-                    self.im_stack = self.Pre_treatment_stack_output2[i,:,:] # Label de la slice à aligner (glissante)
-                    self.im_doppel = self.Pre_treatment_doppelstack_output2[i,:,:] # Label de la slice de référence (glissante)
+                    #self.im_stack = self.Pre_treatment_stack_output2[i,:,:] # Label de la slice à aligner (glissante)
+                    #self.im_doppel = self.Pre_treatment_doppelstack_output2[i,:,:] # Label de la slice de référence (glissante)
 
                     # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                    self.cc, self.warp = cv2.findTransformECC(self.im_doppel, self.im_stack, self.warp, self.warp_mode, self.criteria)
+                    #self.cc, self.warp = cv2.findTransformECC(self.im_doppel, self.im_stack, self.warp, self.warp_mode, self.criteria)
+                    self.ccAndTransformECC(self.Pre_treatment_doppelstack_output2[i,:,:], self.Pre_treatment_stack_output2[i,:,:])
                         
                     # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                     self.Recap_warp[i,:,:] = self.warp
