@@ -43,7 +43,7 @@ if "cupy" in sys.modules:
     from indexGPU import Indexation_GUI as Indexation_TSG
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__local.ui") 
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -145,6 +145,9 @@ class MainWindow(uiclass, baseclass):
         if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)): #if not 8bits
             self.eight_bits_img = gf.convertToUint8(self.Current_stack)
             self.StackList.append(self.eight_bits_img)
+            Combo_text = '\u2022 8 bits data'
+            Combo_data = self.eight_bits_img
+            self.choiceBox.addItem(Combo_text, Combo_data)
             self.Current_stack = self.eight_bits_img
             self.Info_box.insertPlainText("\n \u2022 Data has been converted to 8 bits.")
             self.Eight_bits_button.setEnabled(False)
@@ -374,6 +377,12 @@ class MainWindow(uiclass, baseclass):
         elif self.choice == "\u2022 KAD map": # If the data is the KAD map
             self.label_Treatment.setText("KAD map")
             self.displayDataview(self.KAD) # Display KAD map on the Treatment ImageView (dataview)
+        elif self.choice == "\u2022 AVG map": # If the data is the AVG map
+            self.label_Treatment.setText("AVG map")
+            self.displayDataview(self.avg_image) # Display AVG map on the Treatment ImageView (dataview)
+        elif self.choice == "\u2022 MED map": # If the data is the MED map
+            self.label_Treatment.setText("MED map")
+            self.displayDataview(self.med_image) # Display MED map on the Treatment ImageView (dataview)
         elif self.choice == "\u2022 Contour map": # If the data is the KAD map
             self.label_Treatment.setText("Contour map")
             self.displayDataview(self.contour_map) # Display KAD map on the Treatment ImageView (dataview)
@@ -486,7 +495,7 @@ class MainWindow(uiclass, baseclass):
             self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
             
         elif self.Toolchoice == 'AVG map':
-            self.avg_image = np.nanmean(self.Current_stack,0) # Creation of the STD map
+            self.avg_image = np.nanmean(self.Current_stack,0) # Creation of the AVG map
             self.displayDataview(self.avg_image)
             
             self.StackList.append(self.avg_image)
@@ -497,6 +506,20 @@ class MainWindow(uiclass, baseclass):
             
             self.Info_box.ensureCursorVisible()
             self.Info_box.insertPlainText("\n \u2022 AVG map has been computed.")
+            self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+            
+        elif self.Toolchoice == 'MED map':
+            self.med_image = np.median(self.Current_stack,0) # Creation of the MED map
+            self.displayDataview(self.med_image)
+            
+            self.StackList.append(self.med_image)
+            
+            Combo_text = '\u2022 MED map'
+            Combo_data = self.med_image
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            
+            self.Info_box.ensureCursorVisible()
+            self.Info_box.insertPlainText("\n \u2022 MED map has been computed.")
             self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
           
         elif self.Toolchoice == 'Bleach correction': # Application of bleach correction if surface contamination
