@@ -43,11 +43,14 @@ import Batch_Processing_local as Batch
 from inichord import TwoD_Stitching as Img_Stitch
 from inichord import ThreeD_Stitching as Series_Stitch
 
-if "cupy" in sys.modules:
-    from indexGPU import Indexation_GUI as Indexation_TSG
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
+
+if "cupy" in sys.modules:
+    # from indexGPU import Indexation_GUI as Indexation_TSG
+    sys.path.append("F:\eCHORD\Programmation\indexGPU\indexGPU")
+    import Indexation_GUI as Indexation_TSG
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
