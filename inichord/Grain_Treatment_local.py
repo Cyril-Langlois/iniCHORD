@@ -21,8 +21,10 @@ from skimage.measure import label, regionprops
 from skimage.segmentation import expand_labels
 from scipy import ndimage as ndi
 
+import cv2
+
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Grain_Treatment.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Grain_Treatment_local.ui")
 
 class MainWindow(uiclass, baseclass):
     def __init__(self, parent):
@@ -197,7 +199,7 @@ class MainWindow(uiclass, baseclass):
         self.InitKAD_map = np.nan_to_num(self.InitKAD_map) # Exclude NaN value if needed
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
         self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
-        
+    
         self.displayExpKAD(self.InitKAD_map) # Display of the map
         
         # If data is too large, hence the labeling step is not performed to avoid long computation prior checking if the data is good to be labeled
@@ -223,7 +225,7 @@ class MainWindow(uiclass, baseclass):
         self.Preset_choice = self.PresetBox.currentText()
 
         if self.Preset_choice == "Undeformed sample":
-            self.spinBox_filter.setValue(0.005)
+            self.spinBox_filter.setValue(0.001)
             self.ClassBox.setValue(4)
             self.ThresholdBox.setValue(1)
 
@@ -271,7 +273,7 @@ class MainWindow(uiclass, baseclass):
         self.Filter_choice = self.FilterBox.currentText()
         
         if self.Filter_choice == "Butterworth (HP) filter":
-            self.spinBox_filter.setRange(0.001,0.5)
+            self.spinBox_filter.setRange(0.001,0.1)
             self.spinBox_filter.setSingleStep(0.001)
             
             self.FilteredKAD_map = np.copy(self.InitKAD_map)
@@ -316,9 +318,17 @@ class MainWindow(uiclass, baseclass):
         self.regions2[var_up] = 1 # Replace values by 1 ==> Binary image created
         self.regions2[var_down] = 0 # Replace values by 1 ==> Binary image created
 
-        self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
-        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
+        self.regions3 = np.copy(self.regions2)
+        # self.regions3 =  1 - ndi.binary_fill_holes( self.regions3).astype("bool") # a voir
+        # self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
+        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity / del for accuracy improvement (reduction of structure lossed) 
         self.binary_regions = 1-self.regions3
+        
+        # Artificial boundaries 
+        self.binary_regions[0, :] = 0  # Premier rangée
+        self.binary_regions[-1, :] = 0  # Dernière rangée
+        self.binary_regions[:, 0] = 0  # Première colonne
+        self.binary_regions[:, -1] = 0  # Dernière colonne
 
         self.displayBinary1(self.binary_regions) # Display the thresholded map
 
@@ -384,20 +394,20 @@ class MainWindow(uiclass, baseclass):
         self.Corrected_img_diameter = np.copy(self.img_diameter) # Map of the grains (diameter value map) with border corrected
         self.Corrected_label_img = np.copy(self.Var_Labels) # Map of the grains (labeled value map) with border corrected
 
-        for i in range(len(var[0])):
-            varx = var[0][i] # X position of the pixel
-            vary = var[1][i] # X position of the pixel
+        # for i in range(len(var[0])):
+        #     varx = var[0][i] # X position of the pixel
+        #     vary = var[1][i] # Y position of the pixel
                 
-            var_diameter = self.img_diameter[varx-x:varx+y,vary-x:vary+y]
-            var_label = self.Var_Labels[varx-x:varx+y,vary-x:vary+y]
+        #     var_diameter = self.img_diameter[varx-x:varx+y,vary-x:vary+y]
+        #     var_label = self.Var_Labels[varx-x:varx+y,vary-x:vary+y]
                 
-            if var_diameter.size != 0:
+        #     if var_diameter.size != 0:
           
-                value_diameter = np.max(var_diameter)
-                value_label = np.max(var_label)
+        #         value_diameter = np.max(var_diameter)
+        #         value_label = np.max(var_label)
                 
-                self.Corrected_img_diameter[varx,vary] = value_diameter
-                self.Corrected_label_img[varx,vary] = value_label
+        #         self.Corrected_img_diameter[varx,vary] = value_diameter
+        #         self.Corrected_label_img[varx,vary] = value_label
 
         # Creation of the overlay map (KAD and grain boundaries)
         self.overlay_KAD_GB = np.copy(self.InitKAD_map)

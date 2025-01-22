@@ -365,16 +365,16 @@ class MainWindow(uiclass, baseclass):
         #self.im2 = eightbit_refStack2
         #print(f"type self.im2 = {type(self.im2)}")
         self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
-        print(self.criteria)
+        # print(self.criteria)
         self.Recap_cc = []
 
         try :   
             #self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
             self.ccAndTransformECC(self.Pre_treatment_stack_output2[self.im_reference,:,:], self.Pre_treatment_stack_output2[self.im_reference + 1,:,:])
             self.cc = '%.3f'%(self.cc)
-            print(f"self.cc = {self.cc}")
+            # print(f"self.cc = {self.cc}")
         except :
-            print("self.cc n'est pas généré")
+            # print("self.cc n'est pas généré")
             QApplication.processEvents()
             self.textEdit.insertPlainText("\n Impossible estimation. Try other parameters.")
 
@@ -727,7 +727,7 @@ class MainWindow(uiclass, baseclass):
             self.parent.choiceBox.addItem(Combo_text, Combo_data)
     
             self.parent.displayExpStack(self.parent.Current_stack)
-            print(f"final image type : {self.parent.Current_stack.dtype}")
+            # print(f"final image type : {self.parent.Current_stack.dtype}")
             
             self.parent.Info_box.ensureCursorVisible()
             self.parent.Info_box.insertPlainText("\n \u2022 Registered stack has been exported.")
@@ -743,7 +743,7 @@ class MainWindow(uiclass, baseclass):
             self.parent.choiceBox.addItem(Combo_text, Combo_data)
     
             self.parent.displayExpStack(self.parent.Current_stack)
-            print(f"final image type : {self.parent.Current_stack.dtype}")
+            # print(f"final image type : {self.parent.Current_stack.dtype}")
             
             self.parent.Info_box.ensureCursorVisible()
             self.parent.Info_box.insertPlainText("\n \u2022 Registered stack has been exported.")

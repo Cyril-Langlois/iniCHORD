@@ -20,9 +20,12 @@ from skimage import morphology, filters, exposure
 from skimage.measure import label, regionprops
 from skimage.segmentation import expand_labels
 from scipy import ndimage as ndi
+from sklearn.cluster import KMeans
+
+import cv2
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Grain_Treatment.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Grain_Treatment_local.ui")
 
 class MainWindow(uiclass, baseclass):
     def __init__(self, parent):
@@ -197,7 +200,7 @@ class MainWindow(uiclass, baseclass):
         self.InitKAD_map = np.nan_to_num(self.InitKAD_map) # Exclude NaN value if needed
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
         self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
-        
+    
         self.displayExpKAD(self.InitKAD_map) # Display of the map
         
         # If data is too large, hence the labeling step is not performed to avoid long computation prior checking if the data is good to be labeled
@@ -223,7 +226,7 @@ class MainWindow(uiclass, baseclass):
         self.Preset_choice = self.PresetBox.currentText()
 
         if self.Preset_choice == "Undeformed sample":
-            self.spinBox_filter.setValue(0.005)
+            self.spinBox_filter.setValue(0.001)
             self.ClassBox.setValue(4)
             self.ThresholdBox.setValue(1)
 
@@ -271,7 +274,7 @@ class MainWindow(uiclass, baseclass):
         self.Filter_choice = self.FilterBox.currentText()
         
         if self.Filter_choice == "Butterworth (HP) filter":
-            self.spinBox_filter.setRange(0.001,0.5)
+            self.spinBox_filter.setRange(0.001,0.1)
             self.spinBox_filter.setSingleStep(0.001)
             
             self.FilteredKAD_map = np.copy(self.InitKAD_map)
@@ -299,12 +302,42 @@ class MainWindow(uiclass, baseclass):
     def Otsu1(self): # Segment map into classes
         self.Otsu1_Value = self.ClassBox.value()
 
-        # Segmentation of the intensities for a given number of classes
-        thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
-        self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
+        if self.Otsu1_Value <= 5:
+            # Segmentation of the intensities for a given number of classes
+            thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
+            self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
+    
+            self.flag_info = True 
+            self.displayOtsu1(self.regions) # Display the Otsu map
+            
+        else: # Application of Kmean approach for nbr of classes higher than 5
+            height, width = self.FilteredKAD_map.shape
+            
+            self.FilteredKAD_mapK = np.copy(self.FilteredKAD_map)
+            pixels = self.FilteredKAD_mapK.reshape((height * width, 1))
+        
+            kmeans = KMeans(n_clusters=self.Otsu1_Value, random_state=0)
+            kmeans.fit(pixels)
 
-        self.flag_info = True 
-        self.displayOtsu1(self.regions) # Display the Otsu map
+            # Obtenir les étiquettes de cluster pour chaque pixel
+            labels = kmeans.labels_
+
+            # Obtenir les centres des clusters
+            cluster_centers = kmeans.cluster_centers_
+
+            # Trier les centres des clusters par ordre d'intensité
+            sorted_indices = np.argsort(cluster_centers.flatten())
+
+            # Réassigner les labels en fonction de l'ordre d'intensité des clusters
+            sorted_labels = np.zeros_like(labels)
+            for i, idx in enumerate(sorted_indices):
+                sorted_labels[labels == idx] = i
+
+            # Redimensionner les étiquettes de cluster en une image 2D
+            self.regions = sorted_labels.reshape((height, width))
+            
+            self.flag_info = True 
+            self.displayOtsu1(self.regions) # Display the Otsu map
 
     def Binary_1(self): # Binarization of the Otsu map for a given threshold level
         self.Binary1_Value = self.ThresholdBox.value()
@@ -316,9 +349,17 @@ class MainWindow(uiclass, baseclass):
         self.regions2[var_up] = 1 # Replace values by 1 ==> Binary image created
         self.regions2[var_down] = 0 # Replace values by 1 ==> Binary image created
 
-        self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
-        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
+        self.regions3 = np.copy(self.regions2)
+        # self.regions3 =  1 - ndi.binary_fill_holes( self.regions3).astype("bool") # a voir
+        # self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
+        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity / del for accuracy improvement (reduction of structure lossed) 
         self.binary_regions = 1-self.regions3
+        
+        # Artificial boundaries 
+        self.binary_regions[0, :] = 0  # Premier rangée
+        self.binary_regions[-1, :] = 0  # Dernière rangée
+        self.binary_regions[:, 0] = 0  # Première colonne
+        self.binary_regions[:, -1] = 0  # Dernière colonne
 
         self.displayBinary1(self.binary_regions) # Display the thresholded map
 
@@ -384,20 +425,20 @@ class MainWindow(uiclass, baseclass):
         self.Corrected_img_diameter = np.copy(self.img_diameter) # Map of the grains (diameter value map) with border corrected
         self.Corrected_label_img = np.copy(self.Var_Labels) # Map of the grains (labeled value map) with border corrected
 
-        for i in range(len(var[0])):
-            varx = var[0][i] # X position of the pixel
-            vary = var[1][i] # X position of the pixel
+        # for i in range(len(var[0])):
+        #     varx = var[0][i] # X position of the pixel
+        #     vary = var[1][i] # Y position of the pixel
                 
-            var_diameter = self.img_diameter[varx-x:varx+y,vary-x:vary+y]
-            var_label = self.Var_Labels[varx-x:varx+y,vary-x:vary+y]
+        #     var_diameter = self.img_diameter[varx-x:varx+y,vary-x:vary+y]
+        #     var_label = self.Var_Labels[varx-x:varx+y,vary-x:vary+y]
                 
-            if var_diameter.size != 0:
+        #     if var_diameter.size != 0:
           
-                value_diameter = np.max(var_diameter)
-                value_label = np.max(var_label)
+        #         value_diameter = np.max(var_diameter)
+        #         value_label = np.max(var_label)
                 
-                self.Corrected_img_diameter[varx,vary] = value_diameter
-                self.Corrected_label_img[varx,vary] = value_label
+        #         self.Corrected_img_diameter[varx,vary] = value_diameter
+        #         self.Corrected_label_img[varx,vary] = value_label
 
         # Creation of the overlay map (KAD and grain boundaries)
         self.overlay_KAD_GB = np.copy(self.InitKAD_map)

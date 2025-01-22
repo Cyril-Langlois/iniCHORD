@@ -32,18 +32,25 @@ from inichord import Auto_Denoising as autoden
 from inichord import KAD_Function as KADfunc
 from inichord import Contour_Map as Contour
 from inichord import Denoise_2Dmap as Denmap
-from inichord import Grain_Treatment as GB
-from inichord import Restored_Grains as Restored
-from inichord import Extract_Mosaic as Extract_mosaic
-from inichord import Batch_Processing as Batch
+# from inichord import Grain_Treatment as GB
+import Grain_Treatment_local2 as GB
+# from inichord import Restored_Grains as Restored
+import Restored_Grains_local as Restored
+# from inichord import Extract_Mosaic as 
+import Extract_Mosaic_local as Extract_mosaic
+# from inichord import Batch_Processing as Batch
+import Batch_Processing_local as Batch
 from inichord import TwoD_Stitching as Img_Stitch
 from inichord import ThreeD_Stitching as Series_Stitch
 
-if "cupy" in sys.modules:
-    from indexGPU import Indexation_GUI as Indexation_TSG
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
+
+if "cupy" in sys.modules:
+    # from indexGPU import Indexation_GUI as Indexation_TSG
+    sys.path.append("F:\eCHORD\Programmation\indexGPU\indexGPU")
+    import Indexation_GUI as Indexation_TSG
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -110,10 +117,10 @@ class MainWindow(uiclass, baseclass):
         self.progressBar.setVisible(False) # The progress bar is hidden for clarity (used only for GRDD-GDS)
         self.mouseLock.setVisible(False)
         
-        for i in range(0,3): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
+        for i in range(0,5): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
             self.Tool_choice.model().item(i).setEnabled(False)
             
-        self.Tool_choice.setCurrentIndex(3) # Default selection at the "Grain boundaries" toolbox
+        self.Tool_choice.setCurrentIndex(5) # Default selection at the "Contour map" toolbox
         self.flag_image = False # Linked to the GRDD-GDS computation (image serie)
         self.flag_labeling = False # Linked to the GRDD-GDS computation (labeled image)
         self.flag_stitchKAD = False # In order to specify which data has been used for 2D stitching
@@ -154,7 +161,6 @@ class MainWindow(uiclass, baseclass):
         else:
             self.Info_box.insertPlainText("\n \u2022 Data was already 8 bits type.")
         
-
     def closeEvent(self, event):
         msgBox = QMessageBox(self)
         msgBox.setWindowTitle('Quit')
@@ -264,7 +270,7 @@ class MainWindow(uiclass, baseclass):
                 self.image = np.flip(self.image, 1) # Flip the array
                 self.image = np.rot90(self.image, k=1, axes=(2, 1)) # Rotate the array
                 
-                for i in range(0,3): # Enable [Bleach correction ; STD map ; KAD map]
+                for i in range(0,5): # Enable [Bleach correction ; STD map ; KAD map]
                     self.Tool_choice.model().item(i).setEnabled(True)
                         
                 self.flag_image = True # Certifies that the stack of image has been imported (for GRDD-GDS computation)
@@ -285,7 +291,7 @@ class MainWindow(uiclass, baseclass):
             
             self.flag_image = True # Certifies that the stack of image has been imported (for GRDD-GDS computation)
             
-            for i in range(0,3): # Enable [Bleach correction ; STD map ; KAD map]
+            for i in range(0,5): # Enable [Bleach correction ; STD map ; KAD map]
                 self.Tool_choice.model().item(i).setEnabled(True)
             
             del (Var) # Delete Var which become useless
@@ -541,7 +547,7 @@ class MainWindow(uiclass, baseclass):
             self.Info_box.insertPlainText("\n \u2022 KAD map construction in progress....")
             QApplication.processEvents()
             
-            self.stack_norm = KADfunc.centeredEuclidianNorm(self.Current_stack, 0) # Normalization of the image series
+            self.stack_norm = fct.centeredEuclidianNorm(self.Current_stack, 0) # Normalization of the image series
             self.KAD = KADfunc.Divided_KAD(self.stack_norm) # Compute the KAD map
             self.displayDataview(self.KAD)
             
