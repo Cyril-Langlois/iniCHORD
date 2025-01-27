@@ -12,7 +12,8 @@ from os.path import abspath
 
 from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
+from PyQt5 import QtCore
 
 from inichord import General_Functions as gf
 import tifffile as tf
@@ -57,9 +58,35 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.1))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.6))
         self.screen = screen
+
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
 
     def Ref_processing(self):
         # Import reference images
@@ -91,7 +118,7 @@ class MainWindow(uiclass, baseclass):
             tf.imwrite(chemin_complet, self.image_ref[i])
             
         # Finished message
-        self.parent.popup_message("Extract mosaic","Reference images have been saved.",'icons/Main_icon.png')
+        self.popup_message("Extract mosaic","Reference images have been saved.",'icons/Main_icon.png')
 
     def loaddata(self):
         StackLoc, StackDir = gf.getFilePathDialog("Images") # Image importation
@@ -179,6 +206,11 @@ class MainWindow(uiclass, baseclass):
             
             i = i+1
         
+        # Permet d'enlever la dernière image du stack (car une de trop à chaque fois). 
+        if self.Delete_last.isChecked():
+            for key in self.images_dict:
+                self.images_dict[key] = self.images_dict[key][:-1, :, :]
+        
         self.progressBar.setFormat("Series have been created")
         
         # Enables buttons
@@ -219,7 +251,8 @@ class MainWindow(uiclass, baseclass):
                 if index[k] == False and index[k + 1] == False:       
                     array_3d[k] = array_3d[k - 1]
         
-            self.Corrected_dict[f"images_{i}"].append(array_3d)
+            # self.Corrected_dict[f"images_{i}"].append(array_3d)
+            self.Corrected_dict[f"images_{i}"] = array_3d
             
             QApplication.processEvents()    
             self.ValSlice = i
@@ -284,11 +317,14 @@ class MainWindow(uiclass, baseclass):
                 QApplication.processEvents()    
                 self.ValSlice = i
                 self.progression_bar()
+                
+            self.progressBar.setFormat("Series have been saved")
+            # Finished message
+            self.popup_message("Extract mosaic","Stacks have been saved.",'icons/Main_icon.png')
+            
         else:
             print("Aucun dossier sélectionné. Annulation de la sauvegarde.")
             
-        self.progressBar.setFormat("Series have been saved")
-
     def progression_bar(self): # Function for the ProgressBar uses
         self.prgbar = self.ValSlice
         self.progressBar.setValue(self.prgbar)

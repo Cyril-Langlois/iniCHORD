@@ -16,10 +16,8 @@ import cv2
 import largestinteriorrectangle as lir
 
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtGui
-from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
+from PyQt5 import QtCore, QtGui
 
 from inichord import General_Functions as gf
 
@@ -80,12 +78,34 @@ class MainWindow(uiclass, baseclass):
         self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.9), int(geometry.height() * 0.6))
         self.screen = screen
-        
-        # Icons sizes management for QMessageBox
-        self.pixmap = QPixmap("icons/Stitch_icon.png")
-        self.pixmap = self.pixmap.scaled(100, 100)
 
 #%% Functions
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+        
     def data_choice(self): # Allow to apply other treatment depending if the data is a KAD one
         msg = QMessageBox.question(self, 'Image stitching', 'Is it a KAD data ?')
         if msg == QMessageBox.Yes:
@@ -99,7 +119,7 @@ class MainWindow(uiclass, baseclass):
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
         
         if checkimage.ndim != 3: # Check if the data is not a sequence of 3D array
-            self.parent.popup_message("3D stitching","Image series (3D stacks) must be imported",'icons/Stitch_icon.png')
+            self.popup_message("3D stitching","Image series (3D stacks) must be imported",'icons/Stitch_icon.png')
             return
         
         else:
@@ -133,7 +153,7 @@ class MainWindow(uiclass, baseclass):
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
         
         if checkimage.ndim != 2: # Check if the data is not a sequence of 2D array
-            self.parent.popup_message("3D stitching","2D images must be imported",'icons/Stitch_icon.png')
+            self.popup_message("3D stitching","2D images must be imported",'icons/Stitch_icon.png')
             return
         
         else:
@@ -242,7 +262,7 @@ class MainWindow(uiclass, baseclass):
             self.Push_export.setEnabled(True)
             self.Save_bttn.setEnabled(True)
         except:
-            self.parent.popup_message("3D stitching","Stitch failed. Please check that the [columns - rows] information match the imported data.",'icons/Stitch_icon.png')
+            self.popup_message("3D stitching","Stitch failed. Please check that the [columns - rows] information match the imported data.",'icons/Stitch_icon.png')
             return
 
     def transformation_determination(self):
@@ -374,7 +394,7 @@ class MainWindow(uiclass, baseclass):
                 M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0) #Homography
         
         else:
-            self.parent.popup_message("3D stitching","Not enough descriptor...",'icons/Stitch_icon.png')
+            self.popup_message("3D stitching","Not enough descriptor...",'icons/Stitch_icon.png')
             return
             
         return M # Return the matrix of transformation between the 2 images
@@ -535,7 +555,7 @@ class MainWindow(uiclass, baseclass):
             file.write("\nThreshold: " + str(self.transfo_choice)) 
 
         # Finished message
-        self.parent.popup_message("3D stitching","Saving process is over.",'icons/Stitch_icon.png')
+        self.popup_message("3D stitching","Saving process is over.",'icons/Stitch_icon.png')
 
     def export_data(self): # Push stitched image in the main GUI
         # Stitched map (KAD or contour)
@@ -602,7 +622,7 @@ class MainWindow(uiclass, baseclass):
             self.parent.Tool_choice.model().item(i).setEnabled(True)
         
         # Finished message
-        self.parent.popup_message("3D stitching","Stitched KAD has been exported to the main GUI.",'icons/Stitch_icon.png')
+        self.popup_message("3D stitching","Stitched KAD has been exported to the main GUI.",'icons/Stitch_icon.png')
         
     def displaySeries(self, series): # Display of initial KAD maps
         self.Series.ui.histogram.hide()

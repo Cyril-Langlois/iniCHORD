@@ -18,12 +18,12 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf # USED
-from inichord import Registration as align # USED
-from inichord import Remove_FFT as RemFFT # USED
-from inichord import Remove_Outliers as rO # USED
-from inichord import Auto_Denoising as autoden # USED
-from inichord import KAD_Function as KADfunc # USED
+from inichord import General_Functions as gf
+from inichord import Registration as align
+from inichord import Remove_FFT as RemFFT
+from inichord import Remove_Outliers as rO
+from inichord import Auto_Denoising as autoden
+from inichord import KAD_Function as KADfunc
 from inichord import Contour_Map as Contour
 
 import tkinter as tk
@@ -48,14 +48,15 @@ class MainWindow(uiclass, baseclass):
         self.flagref = 0
         
         self.Run_bttn.setEnabled(False) # Run button is disable until data opening.
+        self.Ref_bttn.setEnabled(False) # Ref button is disable until data opening.
         
         app = QApplication.instance()
         screen = app.screenAt(self.pos())
         geometry = screen.availableGeometry()
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.1))
-        self.resize(int(geometry.width() * 0.4), int(geometry.height() * 0.6))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
+        self.resize(int(geometry.width() * 0.4), int(geometry.height() * 0.7))
         self.screen = screen
 
     def loaddata(self):
@@ -83,6 +84,7 @@ class MainWindow(uiclass, baseclass):
         self.Info_box.insertPlainText("\n ----------")
         
         self.Run_bttn.setEnabled(True)
+        self.Ref_bttn.setEnabled(True)
 
     def loadref(self):
         StackLoc, StackDir = gf.getFilePathDialog("image reference") # Image importation
@@ -125,6 +127,10 @@ class MainWindow(uiclass, baseclass):
             self.spinStart = self.spinStart_val.setValue(0)
             self.spinEnd = self.spinEnd_val.setValue(20)
             self.spinNbr = self.spinNbr_val.setValue(30)
+
+    def convert_to_8bits(self):
+        if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)): #if not 8bits
+            self.eight_bits_img = gf.convertToUint8(self.Current_stack)
 
     def run_batch(self):
         # Initialiser Tkinter
@@ -256,6 +262,14 @@ class MainWindow(uiclass, baseclass):
             w3.remOutStack()
         
             Main_TSG.Current_stack = w3.denoised_Stack
+            
+            chemin_complet = os.path.join(dossier, f"Treated_serie_before_denoising_{i+1}.tiff")
+            # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
+            tf.imwrite(chemin_complet, Main_TSG.Current_stack)
+        
+            # Convert to 8 bits if needed
+            if not (isinstance(Main_TSG.Current_stack.flat[0], np.int8) or isinstance(Main_TSG.Current_stack.flat[0], np.uint8)): #if not 8bits
+                Main_TSG.Current_stack = gf.convertToUint8(Main_TSG.Current_stack)
         
             # Auto-denoising
             self.Info_box.ensureCursorVisible()

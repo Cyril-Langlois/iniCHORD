@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 24 11:11:27 2023
+Created on Sun Nov 26 17:31:45 2023
 
 @author: clanglois1
 """
@@ -9,27 +9,16 @@ import os
 from os.path import abspath
 
 from inspect import getsourcefile
-
 import numpy as np
 
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
-from PyQt5 import QtWidgets
-
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
-
-if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-    # enable highdpi scaling
-
-if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
-    # use highdpi icons
+from skimage.restoration import denoise_tv_chambolle
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/NLMD.ui")
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/TV.ui")
 
 class MainWindow(uiclass, baseclass):
     def __init__(self, parent):
@@ -37,23 +26,23 @@ class MainWindow(uiclass, baseclass):
         self.setupUi(self)
         self.parent = parent
         
-        self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png'))    
+        self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png'))   
         
         self.expStack = parent.Current_stack
-
         self.denoised_Stack = np.copy(parent.Current_stack)
 
         self.x = 0
         self.y = 0
         
-        self.patch_size = 5
-        self.patch_distance = 6
-        self.param_h = self.slider_h.value() / 10_0.0
+        self.maxInt = np.max(self.expStack)
         
-        self.label_distance.setText("Patch Distance: " + str(self.patch_distance))
-        self.label_size.setText("Patch Size: " + str(self.patch_size))
-        self.label_h.setText("Parameter h: " + str(self.param_h))
-        
+        if self.maxInt < 256:
+            self.noise = self.slider_noise.value()
+            self.label_noise.setText("Noise level: " + str(self.noise))
+        else:
+            self.noise = self.slider_noise.value() * 100
+            self.label_noise.setText("Noise level: " + str(self.noise))
+                    
         if self.denoised.isChecked():
             self.denoised.toggle()
             
@@ -68,26 +57,20 @@ class MainWindow(uiclass, baseclass):
         self.proxy1 = pg.SignalProxy(self.expSeries.scene.sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
         self.proxy4 = pg.SignalProxy(self.expSeries.ui.graphicsView.scene().sigMouseClicked, rateLimit=60, slot=self.mouseClick)
         
-        self.slider_size.valueChanged.connect(self.size_changed)
-        self.slider_distance.valueChanged.connect(self.distance_changed)
-        self.slider_h.valueChanged.connect(self.h_changed)
-        
+        self.slider_noise.sliderReleased.connect(self.noise_changed)
+       
         self.expSeries.timeLine.sigPositionChanged.connect(self.drawCHORDprofiles)
         self.preview.clicked.connect(self.denoiseStack)
         self.denoised.stateChanged.connect(self.drawCHORDprofiles)
-        
+
         self.Validate_button.clicked.connect(self.validate)
+        self.mouseLock.setVisible(False)
         
         self.img_number = len(self.expStack)
         self.prgbar = 0 # Outil pour la bar de progression
         self.progressBar.setValue(self.prgbar)
         self.progressBar.setRange(0, self.img_number-1)
         
-        # self.type = self.expStack.dtype
-
-        self.expStack = self.check_type(self.expStack) # Convert data to float32 if needed
-        self.denoised_Stack = self.check_type(self.denoised_Stack) # Convert data to float32 if needed
-            
         self.displayExpStack(self.expStack)
         self.defaultdrawCHORDprofiles()
         
@@ -99,54 +82,29 @@ class MainWindow(uiclass, baseclass):
         self.resize(int(geometry.width() * 0.7), int(geometry.height() * 0.6))
         self.screen = screen
         
-        self.Validate_button.setEnabled(False)
-        self.mouseLock.setVisible(False)
+        self.Validate_button.setEnabled(True)
 
-    def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
-        self.data = data.astype(np.float32)
-        self.maxInt = np.max(self.data)
+#%% Functions
+    def noise_changed(self):
+        if self.maxInt < 256:
+            self.noise = self.slider_noise.value()
+        else:
+            self.noise = self.slider_noise.value() * 100
         
-        return self.data
-
-    def size_changed(self):
-        value = self.slider_size.value()
-        self.patch_size = value
-        self.label_size.setText("Patch Size: " + str(value))
+        self.label_noise.setText("Noise level: " + str(self.noise))
         self.denoiseSlice()
     
-    def distance_changed(self):
-        value = self.slider_distance.value()
-        self.threshold = value
-        self.label_distance.setText("Patch Distance: " + str(value))
-        self.denoiseSlice()
-        
-    def h_changed(self):
-        value = self.slider_h.value() 
-        
-        if self.maxInt < 256:
-            self.param_h = value / 10_0.0  
-        else:
-            self.param_h = value
-
-        self.label_h.setText("Parameter h: " + str(self.param_h))
-        self.denoiseSlice()
-
     def denoiseSlice(self):
-        a = gf.NonLocalMeanDenoising(self.expStack[0, :, :], self.param_h, True, self.patch_size, self.patch_distance)
-        
-        self.denoised_Stack[0, :, :] = a
-
+        self.denoised_Stack[0, :, :] = denoise_tv_chambolle(self.expStack[0, :, :], self.noise)
         self.displayExpStack(self.denoised_Stack)
-        
         self.denoised.setEnabled(False)
 
     def denoiseStack(self):
         self.denoised.setEnabled(False)
         self.preview.setEnabled(False)
-        
+              
         for i in range(0,len(self.expStack[:, 0, 0])): # Apply parameter on each slice
-            a = gf.NonLocalMeanDenoising(self.expStack[i, :, :], self.param_h, True, self.patch_size, self.patch_distance)
-            self.denoised_Stack[i, :, :] = a
+            self.denoised_Stack[i, :, :] = denoise_tv_chambolle(self.expStack[i, :, :], self.noise)
 
             QApplication.processEvents()    
             self.ValSlice = i
@@ -156,24 +114,24 @@ class MainWindow(uiclass, baseclass):
         self.denoised.setEnabled(True)  
         self.denoised.setChecked(True)
         self.preview.setEnabled(True)
+        self.Validate_button.setEnabled(True)
         
         self.displayExpStack(self.denoised_Stack)
-        self.Validate_button.setEnabled(True)
         
     def validate(self):
         self.parent.Current_stack = np.copy(self.denoised_Stack)
         self.parent.StackList.append(self.denoised_Stack)
         
-        Combo_text = '\u2022 Manual NLMD denoising. Parameter h : ' + str(self.param_h) + '. Patch size : ' + str(self.patch_size) + '. Patch distance : ' + str(self.patch_distance)  
+        Combo_text = '\u2022 Manual TV denoising. parameter : ' + str(self.noise)
         Combo_data = self.denoised_Stack
         self.parent.choiceBox.addItem(Combo_text, Combo_data)
 
         self.parent.displayExpStack(self.parent.Current_stack)
-        
-        self.drawCHORDprofiles()  
+
+        self.drawCHORDprofiles()        
         
         self.parent.Info_box.ensureCursorVisible()
-        self.parent.Info_box.insertPlainText("\n \u2022 NLMD denoising is achieved.")     
+        self.parent.Info_box.insertPlainText("\n \u2022 TV denoising is achieved.")
         
         self.close()
 
@@ -183,7 +141,7 @@ class MainWindow(uiclass, baseclass):
         
         self.profiles.getPlotItem().hideAxis('bottom')
         self.profiles.getPlotItem().hideAxis('left')
-     
+         
     def drawCHORDprofiles(self):
         try:
             self.profiles.clear()
@@ -222,7 +180,7 @@ class MainWindow(uiclass, baseclass):
     def progression_bar(self): # Fonction relative à la barre de progression
         self.prgbar = self.ValSlice
         self.progressBar.setValue(self.prgbar)
-
+        
     def displayExpStack(self, Series):
         self.expSeries.ui.histogram.hide()
         self.expSeries.ui.roiBtn.hide()
@@ -284,15 +242,15 @@ class MainWindow(uiclass, baseclass):
         posQpoint.setY(fromPosY)
 
         if self.expSeries.view.sceneBoundingRect().contains(posQpoint):
-                
+
             item = self.expSeries.view
             mousePoint = item.mapSceneToView(posQpoint) 
 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
-                 
+ 
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())
-            
+
         if self.x >= 0 and self.y >= 0 and self.x < len(self.expStack[0, :, 0])and self.y < len(self.expStack[0, 0, :]):
             self.drawCHORDprofiles()

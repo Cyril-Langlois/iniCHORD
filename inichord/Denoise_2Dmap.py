@@ -29,7 +29,6 @@ class MainWindow(uiclass, baseclass):
         self.parent = parent
         
         self.OpenData.clicked.connect(self.loaddata) # Load data
-        # self.preview.clicked.connect(self.run_Denoising) # Run batch
         self.Push_validate.clicked.connect(self.extract_data)
         
         self.setWindowIcon(QtGui.QIcon('icons/filter_icon.png')) 
@@ -89,24 +88,21 @@ class MainWindow(uiclass, baseclass):
         self.run_Denoising()
 
     def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
-        datatype = data.dtype
-        print(datatype)
-
-        if datatype == "float64":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-        if datatype == "uint16":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-        elif datatype == "uint8":
-            self.data = data.astype(np.float32)
-        elif datatype == "float32":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-            
+        self.data = data.astype(np.float32)
+        self.maxInt = np.max(self.data)
+        
         return self.data
 
     def run_Denoising(self):
+        value = self.slider_h.value() 
+        
+        if self.maxInt < 2:
+            self.param_h = value / 100_00.0  
+        elif self.maxInt < 256:
+            self.param_h = value / 10_0.0  
+        else:
+            self.param_h = value
+        
         a = gf.NonLocalMeanDenoising(self.expStack[:, :], self.param_h, True, self.patch_size, self.patch_distance)
         
         self.denoised_map[:, :] = a
@@ -126,29 +122,26 @@ class MainWindow(uiclass, baseclass):
         self.run_Denoising()
         
     def h_changed(self):
-        value = self.slider_h.value()
-        self.param_h = value / 10_0.0        
+        value = self.slider_h.value() 
+        
+        if self.maxInt < 2:
+            self.param_h = value / 100_00.0  
+        elif self.maxInt < 256:
+            self.param_h = value / 10_0.0  
+        else:
+            self.param_h = value
+            
         self.label_h.setText("Parameter h: " + str(self.param_h))
+
         self.run_Denoising()  
         
-    def extract_data(self):
-        self.parent.KAD = np.copy(self.denoised_map) # Copy in the main GUI
-        self.parent.StackList.append(self.denoised_map) # Add the data in the stack list
+    def extract_data(self): # Save data in a folder
         
-        Combo_text = '\u2022 Denoised 2D map'
-        Combo_data = self.denoised_map
-        self.parent.choiceBox.addItem(Combo_text, Combo_data) # Add the data in the QComboBox
-
-        self.parent.displayDataview(self.parent.KAD) # Display the labeled grain
-        self.parent.choiceBox.setCurrentIndex(self.parent.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
-
-        self.parent.Info_box.ensureCursorVisible()
-        self.parent.Info_box.insertPlainText("\n \u2022 Denoised 2D map.") 
+        self.denoised_map = np.flip(self.denoised_map, 0)
+        self.denoised_map = np.rot90(self.denoised_map, k=1, axes=(1, 0))
         
-        self.parent.Save_button.setEnabled(True)
-        self.parent.Reload_button.setEnabled(True)
-        self.parent.choiceBox.setEnabled(True)
-        
+        gf.Saving_img_or_stack(self.denoised_map)
+    
         self.close()
 
     def defaultIV(self):
