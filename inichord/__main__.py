@@ -15,9 +15,8 @@ from skimage.measure import regionprops
 import tifffile as tf
 
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap
 
 from inichord import General_Functions as gf
 from inichord import Profile_Modification as fct
@@ -28,6 +27,7 @@ from inichord import Remove_Outliers as rO
 from inichord import NLMD as nl
 from inichord import BM3D as bm
 from inichord import VSNR as vs
+from inichord import TV as tv
 from inichord import Auto_Denoising as autoden
 from inichord import KAD_Function as KADfunc
 from inichord import Contour_Map as Contour
@@ -61,6 +61,7 @@ class MainWindow(uiclass, baseclass):
         self.color6 = (193, 167, 181,50) # Brush Color for legend in plot
 
         self.Open_data.clicked.connect(self.loaddata) # Load image series or 2D array (for KAD map)
+        self.Eight_bits_button.clicked.connect(self.convert_to_8bits)
         self.Edit_tools_button.clicked.connect(self.stackmodifier) # Modification of image series (cropping, binning, slicing)
         self.Registration_button.clicked.connect(self.Stackregistration) # Stack registration
         self.Background_remover_button.clicked.connect(self.FFTFiltering) # FFT background substraction
@@ -97,6 +98,7 @@ class MainWindow(uiclass, baseclass):
         # Buttons are not enables except [Open data ; Tool_choice ; Run button ; Indexation]
         self.Edit_tools_button.setEnabled(False)
         self.Registration_button.setEnabled(False)
+        self.Eight_bits_button.setEnabled(False)
         self.Background_remover_button.setEnabled(False)
         self.Remove_outliers_button.setEnabled(False)
         self.Manual_denoising_button.setEnabled(False)
@@ -107,11 +109,12 @@ class MainWindow(uiclass, baseclass):
         self.choiceBox.setEnabled(False)
         self.progressBar.setVisible(False) # The progress bar is hidden for clarity (used only for GRDD-GDS)
         self.mouseLock.setVisible(False)
+        self.Eight_bits_button.setVisible(False)
         
-        for i in range(0,3): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
+        for i in range(0,5): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
             self.Tool_choice.model().item(i).setEnabled(False)
             
-        self.Tool_choice.setCurrentIndex(3) # Default selection at the "Grain boundaries" toolbox
+        self.Tool_choice.setCurrentIndex(5) # Default selection at the "Contour map" toolbox
         self.flag_image = False # Linked to the GRDD-GDS computation (image serie)
         self.flag_labeling = False # Linked to the GRDD-GDS computation (labeled image)
         self.flag_stitchKAD = False # In order to specify which data has been used for 2D stitching
@@ -122,12 +125,8 @@ class MainWindow(uiclass, baseclass):
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
         self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
-        self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.75))
+        self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.7))
         self.screen = screen
-        
-        # Icons sizes management for pop-up windows (QMessageBox)
-        self.pixmap = QPixmap("icons/Main_icon.png")
-        self.pixmap = self.pixmap.scaled(100, 100)
         
         self.Indexation_button.setVisible(False)
         
@@ -136,17 +135,30 @@ class MainWindow(uiclass, baseclass):
             self.Indexation_button.clicked.connect(self.Indexation_orientation) # Orientation indexation
         
 #%% Functions
-    try:    
+    try:
         def Indexation_orientation(self): # Run the indexing sub-gui
             self.w = Indexation_TSG.MainWindow(self)
             self.w.show()
     except:
         pass
-
+    
+    def convert_to_8bits(self):
+        if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)): #if not 8bits
+            self.eight_bits_img = gf.convertToUint8(self.Current_stack)
+            self.StackList.append(self.eight_bits_img)
+            Combo_text = '\u2022 8 bits data'
+            Combo_data = self.eight_bits_img
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            self.Current_stack = self.eight_bits_img
+            self.Info_box.insertPlainText("\n \u2022 Data has been converted to 8 bits.")
+            self.Eight_bits_button.setEnabled(False)
+        else:
+            self.Info_box.insertPlainText("\n \u2022 Data was already 8 bits type.")
+        
     def closeEvent(self, event):
         msgBox = QMessageBox(self)
-        msgBox.setWindowTitle('Confirmation')
-        msgBox.setText("Voulez-vous vraiment quitter ?")
+        msgBox.setWindowTitle('Quit')
+        msgBox.setText("Do you really want to quit ?")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         
         # Changer la police
@@ -160,7 +172,33 @@ class MainWindow(uiclass, baseclass):
             event.accept()
         else:
             event.ignore()
+            
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
 
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+        
     def loaddata(self): # Allow to load image serie (3D stack or image sequence) and 2D map (KAD data)
         self.StackLoc, self.StackDir = gf.getFilePathDialog("Image stack (*.tiff)")  # Ask to open stack of images
         
@@ -178,7 +216,7 @@ class MainWindow(uiclass, baseclass):
                     self.choiceBox.clear() # Clean the choiceBox
                     
                 try: # Delete of image series and current stack is any
-                    del(self.image,self.Current_stack)
+                    del(self.image, self.Current_stack)
                 except:
                     pass
 
@@ -226,7 +264,7 @@ class MainWindow(uiclass, baseclass):
                 self.image = np.flip(self.image, 1) # Flip the array
                 self.image = np.rot90(self.image, k=1, axes=(2, 1)) # Rotate the array
                 
-                for i in range(0,3): # Enable [Bleach correction ; STD map ; KAD map]
+                for i in range(0,5): # Enable [Bleach correction ; STD map ; KAD map]
                     self.Tool_choice.model().item(i).setEnabled(True)
                         
                 self.flag_image = True # Certifies that the stack of image has been imported (for GRDD-GDS computation)
@@ -247,7 +285,7 @@ class MainWindow(uiclass, baseclass):
             
             self.flag_image = True # Certifies that the stack of image has been imported (for GRDD-GDS computation)
             
-            for i in range(0,3): # Enable [Bleach correction ; STD map ; KAD map]
+            for i in range(0,5): # Enable [Bleach correction ; STD map ; KAD map]
                 self.Tool_choice.model().item(i).setEnabled(True)
             
             del (Var) # Delete Var which become useless
@@ -286,6 +324,7 @@ class MainWindow(uiclass, baseclass):
             
             # Activation of the widgets that were disable
             self.Edit_tools_button.setEnabled(True)
+            
             self.Registration_button.setEnabled(True)
             self.Background_remover_button.setEnabled(True)
             self.Remove_outliers_button.setEnabled(True)
@@ -295,6 +334,9 @@ class MainWindow(uiclass, baseclass):
             self.Reload_button.setEnabled(True)
             self.Choice_denoiser.setEnabled(True)
             self.choiceBox.setEnabled(True)
+            
+            if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)) :
+                self.Eight_bits_button.setEnabled(True)
             
             self.Tool_choice.setCurrentIndex(0) 
         except: # If the try is not possible, then nothing happens
@@ -335,12 +377,15 @@ class MainWindow(uiclass, baseclass):
         elif self.choice == "\u2022 KAD map": # If the data is the KAD map
             self.label_Treatment.setText("KAD map")
             self.displayDataview(self.KAD) # Display KAD map on the Treatment ImageView (dataview)
+        elif self.choice == "\u2022 AVG map": # If the data is the AVG map
+            self.label_Treatment.setText("AVG map")
+            self.displayDataview(self.avg_image) # Display AVG map on the Treatment ImageView (dataview)
+        elif self.choice == "\u2022 MED map": # If the data is the MED map
+            self.label_Treatment.setText("MED map")
+            self.displayDataview(self.med_image) # Display MED map on the Treatment ImageView (dataview)
         elif self.choice == "\u2022 Contour map": # If the data is the KAD map
             self.label_Treatment.setText("Contour map")
             self.displayDataview(self.contour_map) # Display KAD map on the Treatment ImageView (dataview)
-        elif self.choice == "\u2022 Denoised 2D map": # If the data is the KAD map
-            self.label_Treatment.setText("Denoised map")
-            self.displayDataview(self.KAD) # Display KAD map on the Treatment ImageView (dataview)
         elif self.choice == "\u2022 Grain labeling": # If the data is the grains labeling map
             self.label_Treatment.setText("Grain labels")
             self.displayDataview(self.Label_image) # Display the labeled image map on the Treatment ImageView (dataview)
@@ -420,13 +465,18 @@ class MainWindow(uiclass, baseclass):
             self.w.show()
         elif self.Manual_denoiser_choice == 'Manual VSNR':
             self.w = vs.MainWindow(self)
-            self.w.show()       
+            self.w.show()     
+        elif self.Manual_denoiser_choice == 'Manual TV':
+            self.w = tv.MainWindow(self)
+            self.w.show()      
 
     def AutoDenoisingStep(self): # Run the auto-denoising sub-gui
         if self.flag == True: # If an image reference was imported
             self.ExtractReference() # Extraction of the reference from the stack of images
             self.w = autoden.MainWindow(self)
             self.w.show()   
+            
+            self.flag = False
         
         elif self.flag == False: # If no image reference was imported
             self.w = autoden.MainWindow(self)
@@ -448,6 +498,34 @@ class MainWindow(uiclass, baseclass):
             self.Info_box.ensureCursorVisible()
             self.Info_box.insertPlainText("\n \u2022 STD map has been computed.")
             self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+            
+        elif self.Toolchoice == 'AVG map':
+            self.avg_image = np.nanmean(self.Current_stack,0) # Creation of the AVG map
+            self.displayDataview(self.avg_image)
+            
+            self.StackList.append(self.avg_image)
+            
+            Combo_text = '\u2022 AVG map'
+            Combo_data = self.avg_image
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            
+            self.Info_box.ensureCursorVisible()
+            self.Info_box.insertPlainText("\n \u2022 AVG map has been computed.")
+            self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+            
+        elif self.Toolchoice == 'MED map':
+            self.med_image = np.median(self.Current_stack,0) # Creation of the MED map
+            self.displayDataview(self.med_image)
+            
+            self.StackList.append(self.med_image)
+            
+            Combo_text = '\u2022 MED map'
+            Combo_data = self.med_image
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            
+            self.Info_box.ensureCursorVisible()
+            self.Info_box.insertPlainText("\n \u2022 MED map has been computed.")
+            self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
           
         elif self.Toolchoice == 'Bleach correction': # Application of bleach correction if surface contamination
             self.Current_stack = gf.bleach_ratio(self.Current_stack)
@@ -468,7 +546,7 @@ class MainWindow(uiclass, baseclass):
             self.Info_box.insertPlainText("\n \u2022 KAD map construction in progress....")
             QApplication.processEvents()
             
-            self.stack_norm = KADfunc.centeredEuclidianNorm(self.Current_stack, 0) # Normalization of the image series
+            self.stack_norm = fct.centeredEuclidianNorm(self.Current_stack, 0) # Normalization of the image series
             self.KAD = KADfunc.Divided_KAD(self.stack_norm) # Compute the KAD map
             self.displayDataview(self.KAD)
             
@@ -569,7 +647,7 @@ class MainWindow(uiclass, baseclass):
                 self.popup_message("GRDD-GDS","GRDD-GDS fail. Check the exactness of the imports",'icons/Main_icon.png')
                 return
             
-        # Case where image serie has been imported bu labeled image is missing
+        # Case where image serie has been imported but labeled image is missing
         elif self.flag_image == True and self.flag_labeling == False: 
             self.popup_message("GRDD-GDS","Please import the labeled image",'icons/Main_icon.png')
 
@@ -592,6 +670,7 @@ class MainWindow(uiclass, baseclass):
             
         # Case where serie and labeled image are presents
         elif self.flag_image == True and self.flag_labeling == True:
+            self.image = np.copy(self.Current_stack)
             self.GRDD_GDS() # Run the GRDD-GDS computation
             
     def GRDD_GDS(self): # Compute the GRDD and the GDS of the data imported
@@ -690,7 +769,7 @@ class MainWindow(uiclass, baseclass):
             pen = pg.mkPen(color=self.color4, width=5) # Color and line width of the profile
             self.profiles.plot(self.Current_stack[:, self.x, self.y], pen=pen) # Plot of the profile
             
-            styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+            styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
             
             self.profiles.setLabel("left", "GrayScale value", **styles) # Import style for Y label
             self.profiles.setLabel("bottom", "Slice", **styles) # Import style for X label
@@ -906,14 +985,6 @@ class MainWindow(uiclass, baseclass):
         view.setBackgroundColor(self.color1)
         
         self.label_Treatment.setText("Treatment")
-        
-    def popup_message(self,title,text,icon):
-        msg = QMessageBox()
-        msg.setIconPixmap(self.pixmap)
-        msg.setWindowTitle(title)
-        msg.setText(text)
-        msg.setWindowIcon(QtGui.QIcon(icon))
-        msg.exec_()
 
 def main():
 
@@ -925,10 +996,4 @@ def main():
 		
 #%% Opening of the initial data    
 if __name__ == '__main__':
-	main()
-
-#        app = QApplication(sys.argv)
-#        w = MainWindow()
-#        w.show()
-#        app.setQuitOnLastWindowClosed(True)
-#        app.exec_()      
+	main() 

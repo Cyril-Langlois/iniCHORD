@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>613</width>
-    <height>671</height>
+    <width>636</width>
+    <height>647</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,7 +43,7 @@ QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
 }
 
 /* Font 1 */
-QPushButton, QPushButton:hover, QCheckBox, QProgressBar {font: 12pt &quot;Noto Sans Cond&quot;}
+QPushButton, QPushButton:hover, QCheckBox, QProgressBar, QLineEdit {font: 12pt &quot;Noto Sans Cond&quot;}
 
 /* Font 2 */
 QComboBox, QTextEdit, QSpinBox {font: 10pt &quot;Noto Sans Cond&quot;}
@@ -56,8 +56,8 @@ QPushButton, QPushButton:hover, QCheckBox {padding : 2px;}
 
 /* Gestion taille des QCheckBoxes */
 QCheckBox::indicator:unchecked, QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:checked, QCheckBox::indicator:checked:hover  {
-	width :15px;
-	height : 15px;
+	width :12px;
+	height : 12px;
 }
 
 QLabel {
@@ -103,8 +103,6 @@ QTextEdit{
 	border-width: 1px;
 	border-color: black;
 }
-
-QLineEdit {font : 12pt &quot;Noto Sans Cond&quot;;}
 
 /* Gestion taille des QLineEdit */
 QLineEdit::indicator:unchecked, QLineEdit::indicator:unchecked:hover, QLineEdit::indicator:checked, QLineEdit::indicator:checked:hover  {
@@ -156,6 +154,10 @@ QSlider::handle:horizontal {
     height: 30px;
     margin: -10px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
     border-radius: 3px;
+}
+
+QGroupBox {
+    font-weight: bold;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -232,6 +234,9 @@ QSlider::handle:horizontal {
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -294,6 +299,9 @@ QSlider::handle:horizontal {
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -347,6 +355,9 @@ QSlider::handle:horizontal {
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>
@@ -392,6 +403,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </property>
                  <property name="text">
                   <string>Binning</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -456,6 +470,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </property>
                  <property name="text">
                   <string>Spline order</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -530,6 +547,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  <property name="text">
                   <string>Start </string>
                  </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -588,6 +608,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  <property name="text">
                   <string>Step</string>
                  </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -645,6 +668,9 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </property>
                  <property name="text">
                   <string># Images</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>

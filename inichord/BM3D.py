@@ -31,6 +31,8 @@ class MainWindow(uiclass, baseclass):
         self.expStack = parent.Current_stack
         self.denoised_Stack = np.copy(parent.Current_stack)
         
+        self.maxInt = np.max(self.expStack)
+        
         self.x = 0
         self.y = 0
         
@@ -82,8 +84,12 @@ class MainWindow(uiclass, baseclass):
         self.Validate_button.setEnabled(False)
 
 #%% Functions       
-    def psd_changed(self):  
-        self.psd = self.slider_psd.value() / 1_0
+    def psd_changed(self):         
+        if self.maxInt < 256:
+            self.psd = self.slider_psd.value() / 1_0
+        else:
+            self.psd = self.slider_psd.value() * 10
+        
         self.label_psd.setText("PSD: " + str(self.psd))
         self.denoiseSlice()
         
@@ -157,7 +163,7 @@ class MainWindow(uiclass, baseclass):
             pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile
             self.profiles.plot(self.expStack[:, self.x, self.y], pen=pen, name='Undenoised') # Plot of the profile
             
-            styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+            styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
             self.profiles.setLabel("left", "Grayscale value", **styles) # Import style for Y label
             self.profiles.setLabel("bottom", "Slice", **styles) # Import style for X label
             

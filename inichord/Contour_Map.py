@@ -9,7 +9,6 @@ Created on Thu Sep  5 15:18:21 2024
 
 import os
 from os.path import abspath
-import sys
 from inspect import getsourcefile
 
 import cv2
@@ -19,9 +18,8 @@ from inichord import General_Functions as gf
 import tifffile as tf
 
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication
+from PyQt5 import QtGui
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Contour_Map.ui")

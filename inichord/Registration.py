@@ -13,7 +13,8 @@ from pystackreg import StackReg
 
 from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
+from PyQt5 import QtCore
 
 from inichord import General_Functions as gf
 
@@ -24,33 +25,41 @@ class MainWindow(uiclass, baseclass):
 
     def __init__(self, parent):
         super().__init__()
-        self.parent = parent
         self.setupUi(self)
-        
         self.setWindowIcon(QtGui.QIcon('icons/alignment_icon.png'))
         
+        
+        # exprimental stack is loaded from __main__ (the parent)
+        # self.parent is created to use it inside the functions through "self" keyword
+        self.parent = parent
         self.expStack = parent.Current_stack
         self.Pre_treatment_stack = np.copy(parent.Current_stack) # Stack that will be used to process the pretreatment 
         
         # Stack that will store the final result
         self.Aligned_stack = np.copy(parent.Current_stack)
         
+        
+        # for the time beeing, some functions only work with 8bit unsigned type...
+        # so the stacks are converted
         self.type = self.expStack.dtype
 
-        if self.type == "uint16" or self.type == "uint32" or self.type == "float64" or self.type == "float32":
-            self.expStack = gf.convertToUint8(self.expStack) # Necessary for computation
-            self.Pre_treatment_stack = gf.convertToUint8(self.Pre_treatment_stack)
-            self.Aligned_stack = gf.convertToUint8(self.Pre_treatment_stack)
+        # if self.type == "uint16" or self.type == "uint32" or self.type == "float64" or self.type == "float32":
+        #     self.expStack = gf.convertToUint8(self.expStack) # Necessary for computation
+        #     self.Pre_treatment_stack = gf.convertToUint8(self.Pre_treatment_stack)
+        #     self.Aligned_stack = gf.convertToUint8(self.Pre_treatment_stack)
 
+        # stack for intermediate calculations and displaying
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_output2 = np.copy(self.Pre_treatment_stack)
-
+        
+        # when a stack must be aligned with respect to another stack
         self.Pre_treatment_doppelstack = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_doppelstack_Remout = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_doppelstack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_doppelstack_output2 = np.copy(self.Pre_treatment_stack)
 
+        # pre-treatment parameters
         self.blur_value = int(self.Blur_box.currentText())
         self.sobel_value = int(self.Sobel_box.currentText())
 
@@ -109,11 +118,37 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.15))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.7))
         self.screen = screen
 
 #%% Functions : initialization
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+
     def checking(self): # Allow to define if registration must be applied to the raw stack or to the pretreated one
         if self.checkBox.isChecked() == True:
             self.checkBox.clicked.connect(self.Pre_notreatment) # Registration on the raw stack
@@ -182,7 +217,7 @@ class MainWindow(uiclass, baseclass):
         pen = pg.mkPen(color=self.parent.color4, width=5) # Color and line width of the profile
         self.RecapCC.plot(recap[:, 0], pen=pen) # Plot of the profile
         
-        styles = {"color": "black", "font-size": "40px", "font-family": "Noto Sans Cond"} # Style for labels
+        styles = {"color": "black", "font-size": "15px", "font-family": "Noto Sans Cond"} # Style for labels
         self.RecapCC.setLabel("left", "Coeff°", **styles) # Import style for Y label
         self.RecapCC.setLabel("bottom", "Slice", **styles) # Import style for X label
         
@@ -210,7 +245,7 @@ class MainWindow(uiclass, baseclass):
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
         
         if len(self.Pre_treatment_stack_Remout) < 5:
-            self.parent.popup_message("Registration","A minimum of 5 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
+            self.popup_message("Registration","A minimum of 5 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
             return
         
         else: # Here, remouve outliers, Gaussian blur and sobel factor are applied
@@ -293,6 +328,7 @@ class MainWindow(uiclass, baseclass):
      
         else :   
             self.Pre_treatment_doppelstack_output2 = self.Pre_treatment_doppelstack
+            
 
     def Coefficient_estim(self): # Estim corrcoeff between the two first image (using pretreated slices and homography)
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
@@ -321,17 +357,24 @@ class MainWindow(uiclass, baseclass):
             self.warp =  np.eye(3, 3, dtype=np.float32) # Matrice pour le stockage des transformations homographiques
         else :
             self.warp =  np.eye(2, 3, dtype=np.float32) # Matrice pour le stockage des transformations affines
-
-        self.im1 = self.Pre_treatment_stack_output2[self.im_reference,:,:] # Définition de la slice de référence
-        self.im2 = self.Pre_treatment_stack_output2[self.im_reference +1,:,:]
-        self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
         
+        #eightbit_refStack1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence)
+        #self.im1 = eightbit_refStack1
+        
+        #eightbit_refStack2 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference +1,:,:])
+        #self.im2 = eightbit_refStack2
+        #print(f"type self.im2 = {type(self.im2)}")
+        self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
+        # print(self.criteria)
         self.Recap_cc = []
 
         try :   
-            self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            #self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+            self.ccAndTransformECC(self.Pre_treatment_stack_output2[self.im_reference,:,:], self.Pre_treatment_stack_output2[self.im_reference + 1,:,:])
             self.cc = '%.3f'%(self.cc)
+            # print(f"self.cc = {self.cc}")
         except :
+            # print("self.cc n'est pas généré")
             QApplication.processEvents()
             self.textEdit.insertPlainText("\n Impossible estimation. Try other parameters.")
 
@@ -387,7 +430,7 @@ class MainWindow(uiclass, baseclass):
             self.Push_valid.setEnabled(True) # Validation button is enables 
 
     def Registration_coreg_step(self):  # Step to perform Co-registration
-        self.parent.popup_message("Registration","Only homographic transformation will be used for the Co-registration approach",'icons/Main_icon.png')
+        self.popup_message("Registration","Only homographic transformation will be used for the Co-registration approach",'icons/Main_icon.png')
 
         StackLoc_doppel, StackDir_doppel  = gf.getFilePathDialog("Choose the already aligned stack that will be used.' (*.tiff)")
         self.doppelganger_stack = tf.TiffFile(StackLoc_doppel[0]).asarray()       
@@ -400,6 +443,12 @@ class MainWindow(uiclass, baseclass):
         self.drawRecapCC(self.Recap_cc)
         self.textEdit.insertPlainText("\n Coregistration is complete.")
         self.Push_valid.setEnabled(True) # Validation button is enables 
+        
+    def ccAndTransformECC(self, img1, img2): #implemented for 16 bits use
+        #converts in 8 bits the 2 images that serves for findTransformECC, actualizes cc and warp
+        self.im1 = gf.convertToUint8(img1)
+        self.im2 = gf.convertToUint8(img2)
+        self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
 
     def Seq_registration(self): # Sequential registration
         QApplication.processEvents()
@@ -433,11 +482,12 @@ class MainWindow(uiclass, baseclass):
             self.warp_mode_selection()
             
             self.Aligned_stack = np.zeros((len(self.Pre_treatment_stack_output2), len(self.Pre_treatment_stack_output2[0]), len(self.Pre_treatment_stack_output2[0][0])), dtype = np.float32)
-
-            self.im1 = self.Pre_treatment_stack_output2[self.im_reference,:,:] # Définition de la slice de référence
+            
+            #eightbit_refStack1 = gf.convertToUint8(self.Pre_treatment_stack_output2[self.im_reference,:,:]) # Définition de la slice de référence
+            #self.im1 = eightbit_refStack1
     
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
-            
+            print(f" seq_reg criteria : {self.criteria}")
             self.Recap_cc = []
             
             self.warp_mode = self.wrapmode
@@ -454,14 +504,17 @@ class MainWindow(uiclass, baseclass):
                     if i == self.im_reference:
                         self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
                     else :
-                        self.im2 = self.Pre_treatment_stack_output2[i,:,:]
+                        #eightbit_refStack2 = gf.convertToUint8(self.Pre_treatment_stack_output2[i,:,:])
+                        #self.im2 = eightbit_refStack2
                         # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                        self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+                        #self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
+                        self.ccAndTransformECC(self.Pre_treatment_stack_output2[self.im_reference,:,:], self.Pre_treatment_stack_output2[i,:,:])
                         
                         # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                         self.Recap_warp[i,:,:] = self.warp
                         self.Recap_cc.append(self.cc) 
                         self.cc = '%.3f'%(self.cc)
+                        print(f"current self.cc = {self.cc}")
                         
                         QApplication.processEvents()                    
                         self.ValSlice = i
@@ -540,10 +593,11 @@ class MainWindow(uiclass, baseclass):
                     if i == self.im_reference:
                         self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
                     else :
-                        self.im1bis = self.Pre_treatment_stack_output2[i-1,:,:] # Label de la slice de référence (glissante)
-                        self.im2 = self.Pre_treatment_stack_output2[i,:,:]
+                        #self.im1bis = self.Pre_treatment_stack_output2[i-1,:,:] # Label de la slice de référence (glissante)
+                        #self.im2 = self.Pre_treatment_stack_output2[i,:,:]
                         # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                        self.cc, self.warp = cv2.findTransformECC(self.im1bis, self.im2, self.warp, self.warp_mode, self.criteria)
+                        #self.cc, self.warp = cv2.findTransformECC(self.im1bis, self.im2, self.warp, self.warp_mode, self.criteria)
+                        self.ccAndTransformECC(self.Pre_treatment_stack_output2[i-1,:,:], self.Pre_treatment_stack_output2[i,:,:])
                         
                         # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                         self.Recap_warp[i,:,:] = self.warp
@@ -599,11 +653,12 @@ class MainWindow(uiclass, baseclass):
                 if i == self.im_reference:
                     self.Aligned_stack[i,:,:] = self.expStack[self.im_reference,:,:]
                 else :
-                    self.im_stack = self.Pre_treatment_stack_output2[i,:,:] # Label de la slice à aligner (glissante)
-                    self.im_doppel = self.Pre_treatment_doppelstack_output2[i,:,:] # Label de la slice de référence (glissante)
+                    #self.im_stack = self.Pre_treatment_stack_output2[i,:,:] # Label de la slice à aligner (glissante)
+                    #self.im_doppel = self.Pre_treatment_doppelstack_output2[i,:,:] # Label de la slice de référence (glissante)
 
                     # Recherche des transformations à appliquer pour passer de im1 (ref) et im2 (slice)
-                    self.cc, self.warp = cv2.findTransformECC(self.im_doppel, self.im_stack, self.warp, self.warp_mode, self.criteria)
+                    #self.cc, self.warp = cv2.findTransformECC(self.im_doppel, self.im_stack, self.warp, self.warp_mode, self.criteria)
+                    self.ccAndTransformECC(self.Pre_treatment_doppelstack_output2[i,:,:], self.Pre_treatment_stack_output2[i,:,:])
                         
                     # Application des transformations déterminées pour obtenir une slice alignée par rapport à im1
                     self.Recap_warp[i,:,:] = self.warp
@@ -672,6 +727,7 @@ class MainWindow(uiclass, baseclass):
             self.parent.choiceBox.addItem(Combo_text, Combo_data)
     
             self.parent.displayExpStack(self.parent.Current_stack)
+            # print(f"final image type : {self.parent.Current_stack.dtype}")
             
             self.parent.Info_box.ensureCursorVisible()
             self.parent.Info_box.insertPlainText("\n \u2022 Registered stack has been exported.")
@@ -687,6 +743,7 @@ class MainWindow(uiclass, baseclass):
             self.parent.choiceBox.addItem(Combo_text, Combo_data)
     
             self.parent.displayExpStack(self.parent.Current_stack)
+            # print(f"final image type : {self.parent.Current_stack.dtype}")
             
             self.parent.Info_box.ensureCursorVisible()
             self.parent.Info_box.insertPlainText("\n \u2022 Registered stack has been exported.")

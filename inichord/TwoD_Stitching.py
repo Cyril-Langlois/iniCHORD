@@ -16,10 +16,9 @@ import cv2
 import largestinteriorrectangle as lir
 
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtGui import QPixmap
 
 from inichord import General_Functions as gf
 
@@ -83,12 +82,34 @@ class MainWindow(uiclass, baseclass):
         self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.9), int(geometry.height() * 0.6))
         self.screen = screen
-        
-        # Icons sizes management for QMessageBox
-        self.pixmap = QPixmap("icons/Stitch_icon.png")
-        self.pixmap = self.pixmap.scaled(100, 100)
 
 #%% Functions
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
+
     def data_choice(self): # Allow to apply other treatment depending if the data is a KAD one
         msg = QMessageBox.question(self, 'Image stitching', 'Is it a KAD data ?')
         if msg == QMessageBox.Yes:
@@ -102,7 +123,7 @@ class MainWindow(uiclass, baseclass):
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
         
         if checkimage.ndim != 2: # Check if the data is not a 2D array
-            self.parent.popup_message("2D stitching","Please import a sequence of 2D arrays",'icons/Stitch_icon.png')
+            self.popup_message("2D stitching","Please import a sequence of 2D arrays",'icons/Stitch_icon.png')
             return
 
         else:
@@ -270,7 +291,7 @@ class MainWindow(uiclass, baseclass):
             self.Save_bttn.setEnabled(True) # Allow to save data in a folder
             
         except:
-            self.parent.popup_message("2D stitching","Stitch failed. Please check that the [columns - rows] information match the imported data.",'icons/Stitch_icon.png')
+            self.popup_message("2D stitching","Stitch failed. Please check that the [columns - rows] information match the imported data.",'icons/Stitch_icon.png')
             return
 
     def find_matches(self,data1, data2, direction = "horizontal"):
@@ -325,7 +346,7 @@ class MainWindow(uiclass, baseclass):
                 M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0) #Homography
         
         else:
-            self.parent.popup_message("2D stitching","Not enough descriptor...",'icons/Stitch_icon.png')
+            self.popup_message("2D stitching","Not enough descriptor...",'icons/Stitch_icon.png')
             return
             
         return M # Return the matrix of transformation between the 2 images
@@ -402,7 +423,7 @@ class MainWindow(uiclass, baseclass):
             file.write("\nThreshold: " + str(self.transfo_choice)) 
 
         # Finished message
-        self.parent.popup_message("2D stitching","Saving process is over.",'icons/Stitch_icon.png')
+        self.popup_message("2D stitching","Saving process is over.",'icons/Stitch_icon.png')
 
     def export_data(self): # Push stitched image in the main GUI
         if self.flag_KAD == True: # If stitching has been applied on KAD data 
@@ -438,7 +459,7 @@ class MainWindow(uiclass, baseclass):
         self.parent.choiceBox.setEnabled(True)
         
         # Finished message
-        self.parent.popup_message("2D stitching","Stitched array has been exported to the main GUI.",'icons/Stitch_icon.png')
+        self.popup_message("2D stitching","Stitched array has been exported to the main GUI.",'icons/Stitch_icon.png')
     
     def displayExpKAD(self, series): # Display of initial KAD maps
         self.KADSeries.ui.histogram.hide()

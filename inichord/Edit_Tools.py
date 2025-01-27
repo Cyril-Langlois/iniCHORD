@@ -9,7 +9,7 @@ from inspect import getsourcefile
 from os.path import abspath
 import numpy as np
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 from scipy import ndimage
 
@@ -77,9 +77,35 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Position (self.move) and size (self.resize) of the main GUI on the screen
-        self.move(int(geometry.width() * 0.1), int(geometry.height() * 0.15))
+        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.7), int(geometry.height() * 0.6))
         self.screen = screen
+
+    def popup_message(self,title,text,icon):
+        msg = QDialog(self) # Create a Qdialog box
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon(icon))
+        
+        label = QLabel(text) # Create a QLabel for the text
+        
+        font = label.font() # Modification of the font
+        font.setPointSize(8)  # Font size modification
+        label.setFont(font)
+        
+        label.setAlignment(QtCore.Qt.AlignCenter) # Text centering
+        label.setWordWrap(False)  # Deactivate the line return
+
+        ok_button = QPushButton("OK") # Creation of the Qpushbutton
+        ok_button.clicked.connect(msg.accept)  # Close the box when pushed
+        
+        layout = QVBoxLayout() # Creation of the vertical layout
+        layout.addWidget(label)       # Add text
+        layout.addWidget(ok_button)   # Add button
+        
+        msg.setLayout(layout) # Apply position 
+        msg.adjustSize() # Automatically adjust size of the window
+        
+        msg.exec_() # Display the message box
 
     def initiateSliceKeeper(self):
         self.start_spinBox.setRange(0, self.nSlices)
@@ -202,7 +228,8 @@ class MainWindow(uiclass, baseclass):
         self.binStack = ndimage.zoom(toBin_Stack, (1, reduction, reduction), order = splineOrder)
         
         if len(self.binStack) == 1:
-            self.parent.popup_message("Edit tools","Only one slice. Please change the number of images",'icons/crop_icon.png')
+            self.popup_message("Edit tools","Only one slice. Please change the number of images",'icons/crop_icon.png')
+            
         else:
             self.parent.Current_stack = self.binStack
             self.parent.StackList.append(self.binStack)
