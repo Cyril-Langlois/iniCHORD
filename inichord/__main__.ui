@@ -514,6 +514,11 @@ QGroupBox {
                  <string>Manual VSNR</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string>Manuel TV</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item alignment="Qt::AlignHCenter">

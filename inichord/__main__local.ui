@@ -3,14 +3,14 @@
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="windowModality">
-   <enum>Qt::NonModal</enum>
+   <enum>Qt::WindowModal</enum>
   </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>909</width>
-    <height>788</height>
+    <height>790</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="contextMenuPolicy">
-   <enum>Qt::NoContextMenu</enum>
+   <enum>Qt::PreventContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>IniCHORD</string>
@@ -386,11 +386,8 @@ QGroupBox {
           <layout class="QVBoxLayout" name="verticalLayout_11">
            <item>
             <widget class="QPushButton" name="Eight_bits_button">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
              <property name="text">
-              <string>Convert to 8bits for denoising</string>
+              <string>Convert to 8 bits</string>
              </property>
              <property name="icon">
               <iconset>
@@ -517,9 +514,14 @@ QGroupBox {
                  <string>Manual VSNR</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string>Manual TV</string>
+                </property>
+               </item>
               </widget>
              </item>
-             <item>
+             <item alignment="Qt::AlignHCenter">
               <widget class="QPushButton" name="Manual_denoising_button">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -821,7 +823,7 @@ QGroupBox {
               </font>
              </property>
              <property name="focusPolicy">
-              <enum>Qt::NoFocus</enum>
+              <enum>Qt::WheelFocus</enum>
              </property>
              <property name="toolTip">
               <string extracomment="hoho">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Choose the data that should be save or reload.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -848,7 +850,7 @@ QGroupBox {
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item>
+             <item alignment="Qt::AlignHCenter">
               <widget class="QPushButton" name="Save_button">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -886,7 +888,7 @@ QGroupBox {
                </property>
               </widget>
              </item>
-             <item>
+             <item alignment="Qt::AlignHCenter">
               <widget class="QPushButton" name="Reload_button">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -1148,7 +1150,13 @@ QGroupBox {
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
         <widget class="QSplitter" name="splitter">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
          <widget class="QWidget" name="layoutWidget">
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
@@ -1348,6 +1356,9 @@ QGroupBox {
              </property>
              <property name="scaledContents">
               <bool>false</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -1556,6 +1567,9 @@ QGroupBox {
              <property name="scaledContents">
               <bool>false</bool>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
             </widget>
            </item>
            <item>
@@ -1566,7 +1580,7 @@ QGroupBox {
         </widget>
         <widget class="QWidget" name="layoutWidget">
          <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
+          <item alignment="Qt::AlignRight">
            <widget class="QCheckBox" name="mouseLock">
             <property name="font">
              <font>
@@ -1587,9 +1601,6 @@ QGroupBox {
           </item>
           <item>
            <widget class="PlotWidget" name="profiles" native="true">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
             <property name="minimumSize">
              <size>
               <width>600</width>

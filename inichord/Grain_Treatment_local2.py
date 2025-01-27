@@ -44,6 +44,7 @@ class MainWindow(uiclass, baseclass):
         self.flag_info_filtered = False # No consideration of excluded pixels (pxls) at the opening
         self.flag_info_filtered2 = False # No consideration of excluded pixels (µm) at the opening
         self.flag_Border = False #No consideration of excluded borders at the opening
+        self.flag_DenLabels = False
         
         self.x = 0
         self.y = 0
@@ -85,7 +86,6 @@ class MainWindow(uiclass, baseclass):
         self.Save_bttn.clicked.connect(self.Save_results) # Saving process (processing steps, results, infos)
         self.Push_validate.clicked.connect(self.validate_data)
         self.Grainsize_bttn.clicked.connect(self.labels_computation)
-        self.exclude_border_bttn.clicked.connect(self.exclude_border) # Exclude labels with borders
                 
         self.PixelSize_edit.setText("Add a pixel size (µm).")
         self.PixelSize_edit.editingFinished.connect(self.changeText) # Take into account the pixel size
@@ -98,7 +98,7 @@ class MainWindow(uiclass, baseclass):
         
         self.Grainsize_bttn.setEnabled(False)
         
-        self.label_filterdiameter.setText("Exclude \u2300 < x(pxls)")
+        # self.label_filterdiameter.setText("Exclude \u2300 < x(pxls)")
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
         self.mouseLock.setVisible(False)
@@ -125,7 +125,7 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Control window position and dimensions
-        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
+        self.move(int(geometry.width() * 0.02), int(geometry.height() * 0.02))
         self.resize(int(geometry.width() * 0.9), int(geometry.height() * 0.6))
         self.screen = screen
         
@@ -155,6 +155,9 @@ class MainWindow(uiclass, baseclass):
         msg.adjustSize() # Automatically adjust size of the window
         
         msg.exec_() # Display the message box
+        
+        # Raise the main window to ensure it stays above the first window but below the message box
+        self.raise_()
 
     def show_choice_message(self): # Qmessage box for the try import at the initialization 
         msg_box = QMessageBox(self)
@@ -174,7 +177,7 @@ class MainWindow(uiclass, baseclass):
             self.flag_KAD = False
 
     def data_choice(self): # Allow to apply other treatment depending if the data is a KAD one
-        msg = QMessageBox.question(self, 'Restored grains', 'Is it a KAD data ?')
+        msg = QMessageBox.question(self, 'Grain boundaries', 'Is it a KAD data ?')
         if msg == QMessageBox.Yes:
             self.flag_KAD = True
         if msg == QMessageBox.No:
@@ -256,7 +259,7 @@ class MainWindow(uiclass, baseclass):
             self.Grain_labeling() # Compute a labeled map (undenoised)
 
     def high_auto_set(self):
-            self.popup_message("Grain boundaries determination","Labeling step is not apply to limit calculation times (large data map).",'icons/Grain_Icons.png')
+            self.popup_message("Grain boundaries","Labeling step is not apply to limit calculation times (large data map).",'icons/Grain_Icons.png')
             
             self.spinBox_filter.setValue(0.005)
             self.ClassBox.setValue(3)
@@ -477,7 +480,7 @@ class MainWindow(uiclass, baseclass):
         self.displaylabels(self.Corrected_label_img) # Display the labeled image
             
         # Finished message
-        self.popup_message("Grain boundaries determination","Properties computed.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries","Properties computed.",'icons/Grain_Icons.png')
         
     def extract_value_list(self): # Extract informations       
         # Equivalent diameter data 
@@ -661,8 +664,8 @@ class MainWindow(uiclass, baseclass):
             # Filtered Equivalent diameter (µm)
             self.filter_labeldiameter_metric_cleaned = self.zero_out_positions(self.filter_labeldiameter_metric, zero_positions)
 
-        # Finished message
-        self.popup_message("Grain boundaries determination","Border excluded.",'icons/Grain_Icons.png')
+        # # Finished message
+        # self.popup_message("Grain boundaries","Borders will be excluded during saving.",'icons/Grain_Icons.png')
 
     def get_border_positions(self,image):# Fonction pour obtenir les positions des pixels des bordures
         border_positions = []
@@ -724,7 +727,7 @@ class MainWindow(uiclass, baseclass):
                 for j in range (len(regions)) :
                     moyen_profil[j][i]=regions[j].mean_intensity 
         except:
-            self.popup_message("Grain boundaries determination","Computation of clustered profiles failed. Check for data.",'icons/Grain_Icons.png')
+            self.popup_message("Grain boundaries","Computation of clustered profiles failed. Check for data.",'icons/Grain_Icons.png')
             return
         
         # Creation of the clustered profiles list
@@ -742,6 +745,10 @@ class MainWindow(uiclass, baseclass):
         self.Labels_int = Labels_int
 
     def Save_results(self):
+        
+        if self.exclude_border_box.isChecked(): # If QCheckBox 'Import image reference' is True, then the function is run
+            self.exclude_border() 
+        
         ti = time.strftime("%Y-%m-%d__%Hh-%Mm-%Ss") # Absolute time 
         
         directory = "Grain_segmentation_" + ti # Name of the main folder
@@ -752,7 +759,10 @@ class MainWindow(uiclass, baseclass):
         with open(PathDir + '\Grain boundaries determination.txt', 'w') as file:
             file.write("KAD data: " + str(self.flag_KAD))
             file.write("\nFiltering parameter: " + str(self.Filter_choice) + " - " + (str(self.Filter_value)))   
-            file.write("\nOtsu class: "+ str(self.Otsu1_Value) + "\nThresholded classes (keep values equal or higher than): " + str(self.Binary1_Value))   
+            if self.Otsu1_Value <= 5:
+                file.write("\nOtsu class: "+ str(self.Otsu1_Value) + "\nThresholded classes (keep values equal or higher than): " + str(self.Binary1_Value))   
+            if self.Otsu1_Value > 5:
+                file.write("\nKmean class: "+ str(self.Otsu1_Value) + "\nThresholded classes (keep values equal or higher than): " + str(self.Binary1_Value))
             file.write("\nLabel denoising step: "+ str(self.flag_DenLabels))
             file.write("\nLabel denoising value: "+ str(self.Den_spinbox.value()))
             file.write("\nGrain diameter excluded (below): "+ str(self.Filter_labelValue))
@@ -771,8 +781,12 @@ class MainWindow(uiclass, baseclass):
         
         tf.imwrite(SubPathDir + '/Map_CLAHE.tiff', np.rot90(np.flip(self.InitKAD_map, 0), k=1, axes=(1, 0)))
         tf.imwrite(SubPathDir + '/Filtered_map.tiff', np.rot90(np.flip(self.FilteredKAD_map, 0), k=1, axes=(1, 0)))  
-        tf.imwrite(SubPathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
-        tf.imwrite(SubPathDir + '/Binary_Otsu.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)))
+        if self.Otsu1_Value <= 5:
+            tf.imwrite(SubPathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(SubPathDir + '/Binary_Otsu.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+        if self.Otsu1_Value > 5:
+            tf.imwrite(SubPathDir + '/Kmean.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(SubPathDir + '/Binary_Kmean.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)).astype('float32')) 
 
         if self.flag_Border == True:
             self.Corrected_label_img = self.Var_Labels_cleaned
@@ -842,7 +856,7 @@ class MainWindow(uiclass, baseclass):
             np.savetxt(Metric_SubPathDir + "/Filtered_grain_size_list_µm.csv", self.filtered_diameter_metric, delimiter = ",")
 
         # Finished message
-        self.popup_message("Grain boundaries determination","Saving process is over.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries","Saving process is over.",'icons/Grain_Icons.png')
 
     def validate_data(self): # Push labeled image in the main GUI
         self.parent.Label_image = np.copy(self.Corrected_label_img) # Copy in the main GUI
@@ -865,7 +879,7 @@ class MainWindow(uiclass, baseclass):
         self.parent.choiceBox.setEnabled(True)
         
         # Finished message
-        self.popup_message("Grain boundaries determination","Labeled image has been exported to the main GUI.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries","Labeled image has been exported to the main GUI.",'icons/Grain_Icons.png')
 
     def displayExpKAD(self, series): # Display of initial map
         self.KADSeries.addItem(self.crosshair_v1, ignoreBounds=True)
@@ -1079,7 +1093,10 @@ class MainWindow(uiclass, baseclass):
     def printClick(self, x, y, sender):
         if self.flag_info == True:
             try:
-                self.Otsu1_label.setText("Otsu classes: " + str(self.regions[x, y]))
+                if self.Otsu1_Value <= 5:
+                    self.Otsu1_label.setText("Otsu classes: " + str(self.regions[x, y]))
+                elif self.Otsu1_Value > 5:
+                    self.Otsu1_label.setText("Kmean classes: " + str(self.regions[x, y]))
             except:
                 pass
             

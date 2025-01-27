@@ -94,7 +94,14 @@ class MainWindow(uiclass, baseclass):
         return self.data
 
     def run_Denoising(self):
-        self.h_changed()
+        value = self.slider_h.value() 
+        
+        if self.maxInt < 2:
+            self.param_h = value / 100_00.0  
+        elif self.maxInt < 256:
+            self.param_h = value / 10_0.0  
+        else:
+            self.param_h = value
         
         a = gf.NonLocalMeanDenoising(self.expStack[:, :], self.param_h, True, self.patch_size, self.patch_distance)
         
@@ -117,7 +124,9 @@ class MainWindow(uiclass, baseclass):
     def h_changed(self):
         value = self.slider_h.value() 
         
-        if self.maxInt < 256:
+        if self.maxInt < 2:
+            self.param_h = value / 100_00.0  
+        elif self.maxInt < 256:
             self.param_h = value / 10_0.0  
         else:
             self.param_h = value

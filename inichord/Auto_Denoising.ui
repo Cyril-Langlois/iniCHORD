@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1342</width>
+    <width>753</width>
     <height>713</height>
    </rect>
   </property>
@@ -1100,7 +1100,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
 }</string>
                    </property>
                    <property name="text">
-                    <string>Approximate reference (# averaged slices)</string>
+                    <string>Reference (# averaged slices)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -1451,7 +1451,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                     <string notr="true"/>
                    </property>
                    <property name="text">
-                    <string>Search of the optimal parameters</string>
+                    <string>Search the optimal parameter</string>
                    </property>
                   </widget>
                  </item>
@@ -1654,7 +1654,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1342</width>
+     <width>753</width>
      <height>20</height>
     </rect>
    </property>
