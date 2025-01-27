@@ -31,6 +31,9 @@ class MainWindow(uiclass, baseclass):
         
         self.expStack = parent.Current_stack
         self.denoised_Stack = np.copy(parent.Current_stack)
+        
+        self.expStack = self.check_type(self.expStack) # Convert data to float32 if needed
+        self.denoised_Stack = self.check_type(self.denoised_Stack) # Convert data to float32 if needed
 
         self.x = 0
         self.y = 0
@@ -86,6 +89,13 @@ class MainWindow(uiclass, baseclass):
         self.Validate_button.setEnabled(True)
 
 #%% Functions
+
+    def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
+        self.data = data.astype(np.float32)
+        self.maxInt = np.max(self.data)
+        
+        return self.data
+
     def noise_changed(self):
         if self.maxInt < 256:
             self.noise = self.slider_noise.value()
