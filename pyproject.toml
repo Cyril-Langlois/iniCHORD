@@ -1,10 +1,6 @@
 [tool.poetry]
 name = "inichord"
-<<<<<<< HEAD
-version = "0.1.21"
-=======
-version = "0.1.23"
->>>>>>> 38cfed02ddeb6bf407c35ae7f59c671d783ff5f5
+version = "0.1.24"
 description = "image series treatment tools"
 authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]
 license = "CeCILL"
