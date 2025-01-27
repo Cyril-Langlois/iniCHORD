@@ -50,6 +50,7 @@ uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main_
 if "cupy" in sys.modules:
     # from indexGPU import Indexation_GUI as Indexation_TSG
     sys.path.append("F:\eCHORD\Programmation\indexGPU\indexGPU")
+    sys.path.append("J:\Recherche\Projet_FIB\Programmation\indexGPU\indexGPU")
     import Indexation_GUI as Indexation_TSG
 
 class MainWindow(uiclass, baseclass):
