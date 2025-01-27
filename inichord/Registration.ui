@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1406</width>
-    <height>750</height>
+    <width>842</width>
+    <height>692</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -191,6 +191,7 @@ QGroupBox {
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -212,7 +213,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <string>Remove Outliers - Radius</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignCenter</set>
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -246,7 +247,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <number>2</number>
                </property>
                <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
+                <enum>Qt::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -262,6 +263,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -283,7 +285,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <string>Remove Outliers - Threshold</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignCenter</set>
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -317,7 +319,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <number>130</number>
                </property>
                <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
+                <enum>Qt::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -337,6 +339,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -361,7 +364,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <bool>false</bool>
                </property>
                <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignCenter</set>
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -377,6 +380,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>10</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -441,6 +445,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -465,7 +470,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <bool>false</bool>
                </property>
                <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignCenter</set>
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -481,6 +486,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>10</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -555,6 +561,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
               <font>
                <family>Noto Sans Cond</family>
                <pointsize>12</pointsize>
+               <weight>50</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
@@ -563,7 +570,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Correlation coefficient: give information about the similarities between image n°1 and image n°2 of the treated stack&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
+              <set>Qt::AlignCenter</set>
              </property>
              <property name="readOnly">
               <bool>true</bool>
@@ -580,7 +587,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </property>
              <property name="minimumSize">
               <size>
-               <width>101</width>
+               <width>96</width>
                <height>0</height>
               </size>
              </property>
@@ -588,6 +595,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
               <font>
                <family>Noto Sans Cond</family>
                <pointsize>12</pointsize>
+               <weight>50</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
@@ -615,7 +623,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>101</width>
+                 <width>96</width>
                  <height>0</height>
                 </size>
                </property>
@@ -623,6 +631,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -648,7 +657,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>101</width>
+                 <width>96</width>
                  <height>0</height>
                 </size>
                </property>
@@ -656,6 +665,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -694,7 +704,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>84</width>
+                 <width>79</width>
                  <height>0</height>
                 </size>
                </property>
@@ -740,7 +750,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </property>
                  <property name="minimumSize">
                   <size>
-                   <width>84</width>
+                   <width>79</width>
                    <height>0</height>
                   </size>
                  </property>
@@ -748,6 +758,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                   <font>
                    <family>Noto Sans Cond</family>
                    <pointsize>10</pointsize>
+                   <weight>50</weight>
                    <italic>false</italic>
                    <bold>false</bold>
                   </font>
@@ -787,6 +798,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                   <font>
                    <family>Noto Sans Cond</family>
                    <pointsize>12</pointsize>
+                   <weight>50</weight>
                    <italic>false</italic>
                    <bold>false</bold>
                   </font>
@@ -826,6 +838,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                 <font>
                  <family>Noto Sans Cond</family>
                  <pointsize>12</pointsize>
+                 <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
@@ -916,15 +929,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </color>
                 </brush>
                </colorrole>
-               <colorrole role="PlaceholderText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="128">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
               </active>
               <inactive>
                <colorrole role="WindowText">
@@ -978,15 +982,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                   <red>255</red>
                   <green>255</green>
                   <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="PlaceholderText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="128">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -1046,15 +1041,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </color>
                 </brush>
                </colorrole>
-               <colorrole role="PlaceholderText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="128">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
               </disabled>
              </palette>
             </property>
@@ -1082,7 +1068,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </property>
             <property name="minimumSize">
              <size>
-              <width>101</width>
+              <width>96</width>
               <height>0</height>
              </size>
             </property>
@@ -1090,6 +1076,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              <font>
               <family>Noto Sans Cond</family>
               <pointsize>12</pointsize>
+              <weight>50</weight>
               <italic>false</italic>
               <bold>false</bold>
              </font>
@@ -1187,15 +1174,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </active>
                 <inactive>
                  <colorrole role="WindowText">
@@ -1249,15 +1227,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                     <red>253</red>
                     <green>249</green>
                     <blue>248</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
                    </color>
                   </brush>
                  </colorrole>
@@ -1317,15 +1286,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </disabled>
                </palette>
               </property>
@@ -1333,6 +1293,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                <font>
                 <family>Noto Sans Cond</family>
                 <pointsize>14</pointsize>
+                <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
                </font>
@@ -1344,7 +1305,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                <string>Raw stack</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -1430,15 +1391,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </active>
                 <inactive>
                  <colorrole role="WindowText">
@@ -1492,15 +1444,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                     <red>253</red>
                     <green>249</green>
                     <blue>248</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
                    </color>
                   </brush>
                  </colorrole>
@@ -1560,15 +1503,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </disabled>
                </palette>
               </property>
@@ -1576,6 +1510,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                <font>
                 <family>Noto Sans Cond</family>
                 <pointsize>14</pointsize>
+                <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
                </font>
@@ -1587,7 +1522,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                <string>Treated stack</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -1670,15 +1605,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </active>
                 <inactive>
                  <colorrole role="WindowText">
@@ -1732,15 +1658,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                     <red>253</red>
                     <green>249</green>
                     <blue>248</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
                    </color>
                   </brush>
                  </colorrole>
@@ -1800,15 +1717,6 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </color>
                   </brush>
                  </colorrole>
-                 <colorrole role="PlaceholderText">
-                  <brush brushstyle="SolidPattern">
-                   <color alpha="128">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                   </color>
-                  </brush>
-                 </colorrole>
                 </disabled>
                </palette>
               </property>
@@ -1816,6 +1724,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                <font>
                 <family>Noto Sans Cond</family>
                 <pointsize>14</pointsize>
+                <weight>50</weight>
                 <italic>false</italic>
                 <bold>false</bold>
                </font>
@@ -1827,7 +1736,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                <string>Registered stack</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -1855,6 +1764,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             <property name="font">
              <font>
               <pointsize>10</pointsize>
+              <weight>50</weight>
               <bold>false</bold>
              </font>
             </property>
@@ -1862,7 +1772,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              <string notr="true"/>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Shadow::Plain</enum>
+             <enum>QFrame::Plain</enum>
             </property>
             <property name="lineWidth">
              <number>5</number>
@@ -1871,7 +1781,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              <number>5</number>
             </property>
             <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
@@ -1907,8 +1817,8 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1406</width>
-     <height>22</height>
+     <width>842</width>
+     <height>20</height>
     </rect>
    </property>
   </widget>
