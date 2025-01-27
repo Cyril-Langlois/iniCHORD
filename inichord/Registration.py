@@ -487,7 +487,7 @@ class MainWindow(uiclass, baseclass):
             #self.im1 = eightbit_refStack1
     
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
-            print(f" seq_reg criteria : {self.criteria}")
+            # print(f" seq_reg criteria : {self.criteria}")
             self.Recap_cc = []
             
             self.warp_mode = self.wrapmode
@@ -514,7 +514,7 @@ class MainWindow(uiclass, baseclass):
                         self.Recap_warp[i,:,:] = self.warp
                         self.Recap_cc.append(self.cc) 
                         self.cc = '%.3f'%(self.cc)
-                        print(f"current self.cc = {self.cc}")
+                        # print(f"current self.cc = {self.cc}")
                         
                         QApplication.processEvents()                    
                         self.ValSlice = i
