@@ -25,13 +25,18 @@ from inichord import Edit_Tools as sm
 import Registration_local as align
 from inichord import Remove_FFT as RemFFT
 from inichord import Remove_Outliers as rO
-from inichord import NLMD as nl
-from inichord import BM3D as bm
+# from inichord import NLMD as nl
+import NLMD_local as nl
+# from inichord import BM3D as bm
+import BM3D_local as bm
 from inichord import VSNR as vs
-from inichord import Auto_Denoising as autoden
+import TV_local as tv
+# from inichord import Auto_Denoising as autoden
+import Auto_Denoising_local as autoden
 from inichord import KAD_Function as KADfunc
 from inichord import Contour_Map as Contour
-from inichord import Denoise_2Dmap as Denmap
+# from inichord import Denoise_2Dmap as Denmap
+import Denoise_2Dmap_local as Denmap
 # from inichord import Grain_Treatment as GB
 import Grain_Treatment_local2 as GB
 # from inichord import Restored_Grains as Restored
@@ -47,7 +52,7 @@ if "cupy" in sys.modules:
     from indexGPU import Indexation_GUI as Indexation_TSG
 
 path2thisFile = abspath(getsourcefile(lambda:0))
-uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
+uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__local.ui") 
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -468,13 +473,18 @@ class MainWindow(uiclass, baseclass):
             self.w.show()
         elif self.Manual_denoiser_choice == 'Manual VSNR':
             self.w = vs.MainWindow(self)
-            self.w.show()       
+            self.w.show()     
+        elif self.Manual_denoiser_choice == 'Manual TV':
+            self.w = tv.MainWindow(self)
+            self.w.show()      
 
     def AutoDenoisingStep(self): # Run the auto-denoising sub-gui
         if self.flag == True: # If an image reference was imported
             self.ExtractReference() # Extraction of the reference from the stack of images
             self.w = autoden.MainWindow(self)
             self.w.show()   
+            
+            self.flag = False
         
         elif self.flag == False: # If no image reference was imported
             self.w = autoden.MainWindow(self)

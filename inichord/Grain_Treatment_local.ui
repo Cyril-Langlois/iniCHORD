@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>714</width>
-    <height>596</height>
+    <height>634</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -220,33 +220,33 @@ QGroupBox {
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="PresetBox">
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Selection of different pre-sets&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <item>
-           <property name="text">
-            <string>Undeformed sample</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Slighlty deformed sample</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Heavily deformed sample</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>Threshold definition</string>
+           <string>Threshold and labeling</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QComboBox" name="PresetBox">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Selection of different pre-sets&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Undeformed sample</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Slighlty deformed sample</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Heavily deformed sample</string>
+              </property>
+             </item>
+            </widget>
+           </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
@@ -468,51 +468,47 @@ QGroupBox {
              </item>
             </layout>
            </item>
+           <item>
+            <widget class="QPushButton" name="ComputeLabels_bttn">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>96</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Perform determination of grain (labeling grains).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Labeling</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>../Traitement_stack/icons/run_icon.png</normaloff>../Traitement_stack/icons/run_icon.png</iconset>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
-           <string>Labeling and filtering</string>
+           <string>Filtering</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QPushButton" name="ComputeLabels_bttn">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>96</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Perform determination of grain (labeling grains).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Labeling</string>
-               </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../Traitement_stack/icons/run_icon.png</normaloff>../Traitement_stack/icons/run_icon.png</iconset>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
@@ -521,7 +517,7 @@ QGroupBox {
                 <string notr="true">font: 10pt &quot;Noto Sans Cond&quot;;</string>
                </property>
                <property name="text">
-                <string>Denoise label intensity</string>
+                <string>Expand label</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -545,7 +541,7 @@ QGroupBox {
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item alignment="Qt::AlignHCenter">
+             <item>
               <widget class="QLabel" name="label_filterdiameter">
                <property name="font">
                 <font>
@@ -560,7 +556,10 @@ QGroupBox {
                 <string notr="true">font: 10pt &quot;Noto Sans Cond&quot;;</string>
                </property>
                <property name="text">
-                <string>Exclude diameter</string>
+                <string>Exclude label</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -591,21 +590,7 @@ QGroupBox {
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Necessary after labeling or denoising&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Compute properties</string>
-             </property>
-             <property name="icon">
-              <iconset>
-               <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="exclude_border_bttn">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exclude every labels on the edges&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Exclude borders</string>
+              <string>Compute</string>
              </property>
              <property name="icon">
               <iconset>
@@ -644,6 +629,13 @@ QGroupBox {
              </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Please choose the labeled map that must be displayed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="exclude_border_box">
+             <property name="text">
+              <string>Exclude borders</string>
              </property>
             </widget>
            </item>
@@ -975,7 +967,7 @@ QGroupBox {
                  <number>0</number>
                 </property>
                 <property name="text">
-                 <string>Unit map</string>
+                 <string>Imported map</string>
                 </property>
                 <property name="scaledContents">
                  <bool>false</bool>
