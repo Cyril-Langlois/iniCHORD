@@ -51,10 +51,10 @@ def fft_profil(arr2, axProf): # Useless
 
     return Var_fft 
 
-def derivee(a, nbderiv, ax = 1, sv = False):
+def derivee(a, nbderiv, ax = 1, sv = False, wl = 5, po = 2):
     
     if sv:
-        return savgol_filter(a, window_length = 5, polyorder = 2, deriv = nbderiv, axis = ax)
+        return savgol_filter(a, window_length = wl, polyorder = po, deriv = nbderiv, axis = ax)
     else:
         return np.diff(a, nbderiv, axis = ax)  
     
@@ -203,8 +203,8 @@ def Profile_modifier(array2D, Workflow, normType, axProf):
         if i[0] == 'Diff':
             if i[1] != 0:
                 
-                if len(i) == 3:
-                    array2D = derivee(array2D, i[1], ax = axProf, sv = True)
+                if len(i) > 2:
+                    array2D = derivee(array2D, i[1], ax = axProf, sv = True, wl = i[2])
                 else:
                     array2D = cyclic(array2D, axProf)
                     array2D = derivee(array2D, i[1], ax = axProf, sv = False)
