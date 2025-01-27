@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inichord"
-version = "0.1.25"
+version = "0.1.26"
 description = "image series treatment tools"
 authors = ["Gabriel Denhez L'Hôte <glhote@insa-lyon.fr>", "Cyril Langlois <cyril.langlois@insa-lyon.fr>"]
 license = "CeCILL"
@@ -14,7 +14,6 @@ pystackreg = "^0.2"
 largestinteriorrectangle = "^0.2"
 pyvsnr = "^2.2.0"
 bm3d = "*"
-matplotlib = "^3.9"
 scikit-learn = "^1.5"
 opencv-python = "^4.10"
 h5py = "^3.11"
