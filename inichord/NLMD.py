@@ -18,7 +18,7 @@ from PyQt5 import QtWidgets
 
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
@@ -83,7 +83,7 @@ class MainWindow(uiclass, baseclass):
         self.progressBar.setValue(self.prgbar)
         self.progressBar.setRange(0, self.img_number-1)
         
-        self.type = self.expStack.dtype
+        # self.type = self.expStack.dtype
 
         self.expStack = self.check_type(self.expStack) # Convert data to float32 if needed
         self.denoised_Stack = self.check_type(self.denoised_Stack) # Convert data to float32 if needed
@@ -103,19 +103,9 @@ class MainWindow(uiclass, baseclass):
         self.mouseLock.setVisible(False)
 
     def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
-        datatype = data.dtype
-
-        if datatype == "float64":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-        if datatype == "uint16":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-        elif datatype == "uint8":
-            self.data = data.astype(np.float32)
-        elif datatype == "float32":
-            self.data = data
-            
+        self.data = data.astype(np.float32)
+        self.maxInt = np.max(self.data)
+        
         return self.data
 
     def size_changed(self):
@@ -131,8 +121,13 @@ class MainWindow(uiclass, baseclass):
         self.denoiseSlice()
         
     def h_changed(self):
-        value = self.slider_h.value()
-        self.param_h = value / 10_0.0        
+        value = self.slider_h.value() 
+        
+        if self.maxInt < 256:
+            self.param_h = value / 10_0.0  
+        else:
+            self.param_h = value
+
         self.label_h.setText("Parameter h: " + str(self.param_h))
         self.denoiseSlice()
 

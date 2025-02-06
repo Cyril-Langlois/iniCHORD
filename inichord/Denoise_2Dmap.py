@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QApplication
 import numpy as np
 from pyqtgraph.Qt import QtGui
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Denoise_2Dmap.ui")
@@ -88,13 +88,21 @@ class MainWindow(uiclass, baseclass):
         self.run_Denoising()
 
     def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
-        self.data = data.astype(np.float32)
+        self.data = np.nan_to_num(data)
+        # self.data = data.astype(np.float32)
         self.maxInt = np.max(self.data)
-        
+
         return self.data
 
     def run_Denoising(self):
-        self.h_changed()
+        value = self.slider_h.value() 
+        
+        if self.maxInt < 2:
+            self.param_h = value / 200_00.0  
+        elif self.maxInt < 256:
+            self.param_h = value / 10_0.0  
+        else:
+            self.param_h = value
         
         a = gf.NonLocalMeanDenoising(self.expStack[:, :], self.param_h, True, self.patch_size, self.patch_distance)
         
@@ -117,7 +125,9 @@ class MainWindow(uiclass, baseclass):
     def h_changed(self):
         value = self.slider_h.value() 
         
-        if self.maxInt < 256:
+        if self.maxInt < 2:
+            self.param_h = value / 100_00.0  
+        elif self.maxInt < 256:
             self.param_h = value / 10_0.0  
         else:
             self.param_h = value

@@ -15,7 +15,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/BM3D.ui")
@@ -30,6 +30,8 @@ class MainWindow(uiclass, baseclass):
                 
         self.expStack = parent.Current_stack
         self.denoised_Stack = np.copy(parent.Current_stack)
+        
+        self.maxInt = np.max(self.expStack)
         
         self.x = 0
         self.y = 0
@@ -82,8 +84,12 @@ class MainWindow(uiclass, baseclass):
         self.Validate_button.setEnabled(False)
 
 #%% Functions       
-    def psd_changed(self):  
-        self.psd = self.slider_psd.value() / 1_0
+    def psd_changed(self):         
+        if self.maxInt < 256:
+            self.psd = self.slider_psd.value() / 1_0
+        else:
+            self.psd = self.slider_psd.value() * 10
+        
         self.label_psd.setText("PSD: " + str(self.psd))
         self.denoiseSlice()
         

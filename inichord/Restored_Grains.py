@@ -17,10 +17,11 @@ import time
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 from skimage import morphology, filters, exposure
 from scipy import ndimage as ndi
+from sklearn.cluster import KMeans
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Restored_Grains.ui")
@@ -84,6 +85,7 @@ class MainWindow(uiclass, baseclass):
         self.Threshold_bttn_2.clicked.connect(self.Binary_2) # Computation of the Otsu 2 thresholding
         self.Save_bttn.clicked.connect(self.Save_results) # To change the displayed maps
         self.Full_Run_bttn.clicked.connect(self.FullRun) # Run all parameters as defined
+        self.CLAHE_SpinBox.valueChanged.connect(self.CLAHE_changed) # Change initial filtering
         
         self.PresetBox.currentTextChanged.connect(self.auto_set) # Run the defined autoset 
         self.spinBox_filter.valueChanged.connect(self.Filter_changed) # Apply filter modification 
@@ -92,6 +94,7 @@ class MainWindow(uiclass, baseclass):
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
         self.mouseLock.setVisible(False)
+        self.Full_Run_bttn.setVisible(False)
         
         try:
             if hasattr(parent, 'KAD') : # Choice of KAD if only available
@@ -146,6 +149,9 @@ class MainWindow(uiclass, baseclass):
         
         msg.exec_() # Display the message box
         
+        # Raise the main window to ensure it stays above the first window but below the message box
+        self.raise_()
+        
     def show_choice_message(self): # Qmessage box for the try import at the initialization 
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Choice of the data")
@@ -178,7 +184,7 @@ class MainWindow(uiclass, baseclass):
         
         checkimage = tf.TiffFile(self.StackLoc[0]).asarray() # Check for dimension. If 2 dimensions : 2D array. If 3 dimensions : stack of images
         if checkimage.ndim != 2: # Check if the data is a 2D array
-            self.popup_message("Restored grain determination","Please import a 2D array",'icons/Restored_Icons.png')
+            self.popup_message("Restored grain","Please import a 2D array",'icons/Restored_Icons.png')
             return
         
         self.data_choice()
@@ -206,6 +212,7 @@ class MainWindow(uiclass, baseclass):
 
     def auto_set(self):
         self.Preset_choice = self.PresetBox.currentText()
+        self.CLAHE_changed()  
         
         if self.Preset_choice == "Default":
             self.spinBox_filter.setValue(1) # Filter value
@@ -272,6 +279,14 @@ class MainWindow(uiclass, baseclass):
             self.Otsu2() # Compute the second Otsu
             self.Binary_2() # Compute the final thresholding
 
+    def CLAHE_changed(self):
+        self.CLAHE_value = self.CLAHE_SpinBox.value()
+        self.CLAHE_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
+
+        # self.CLAHE_map = filters.unsharp_mask(self.CLAHE_map, radius=1, amount=1)
+
+        self.displayFilteredKAD(self.CLAHE_map) # Display the map after load
+
     def Filter_changed(self): # Allow the modification of the map with different filtering and values
         self.Filter_choice = self.FilterBox.currentText()
         
@@ -279,7 +294,7 @@ class MainWindow(uiclass, baseclass):
             self.spinBox_filter.setRange(0,10)
             self.spinBox_filter.setSingleStep(1)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = int(self.spinBox_filter.value())
             self.FilteredKAD_map = filters.gaussian(self.FilteredKAD_map, self.Filter_value)
         
@@ -287,7 +302,7 @@ class MainWindow(uiclass, baseclass):
             self.spinBox_filter.setRange(0.1,0.5)
             self.spinBox_filter.setSingleStep(0.1)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.butterworth(self.FilteredKAD_map,self.Filter_value,False,8)
             
@@ -296,11 +311,40 @@ class MainWindow(uiclass, baseclass):
     def Otsu1(self): # Segment map into classes
         self.Otsu1_Value = self.ClassBox.value()
 
-        # Segmentation of the intensities for a given number of classes
-        thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
-        self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
+        if self.Otsu1_Value <= 5:
+            # Segmentation of the intensities for a given number of classes
+            thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
+            self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
+    
+            self.displayOtsu1(self.regions) # Display the Otsu map
+        
+        else: # Application of Kmean approach for nbr of classes higher than 5
+            height, width = self.FilteredKAD_map.shape
+            
+            self.FilteredKAD_mapK = np.copy(self.FilteredKAD_map)
+            pixels = self.FilteredKAD_mapK.reshape((height * width, 1))
+        
+            kmeans = KMeans(n_clusters=self.Otsu1_Value, random_state=0)
+            kmeans.fit(pixels)
 
-        self.displayOtsu1(self.regions) # Display the Otsu map
+            # Obtenir les étiquettes de cluster pour chaque pixel
+            labels = kmeans.labels_
+
+            # Obtenir les centres des clusters
+            cluster_centers = kmeans.cluster_centers_
+
+            # Trier les centres des clusters par ordre d'intensité
+            sorted_indices = np.argsort(cluster_centers.flatten())
+
+            # Réassigner les labels en fonction de l'ordre d'intensité des clusters
+            sorted_labels = np.zeros_like(labels)
+            for i, idx in enumerate(sorted_indices):
+                sorted_labels[labels == idx] = i
+
+            # Redimensionner les étiquettes de cluster en une image 2D
+            self.regions = sorted_labels.reshape((height, width))
+            
+            self.displayOtsu1(self.regions) # Display the Otsu map
 
     def Binary_1(self): # Binarization of the Otsu map for a given threshold level
         self.Binary1_Value = self.ThresholdBox.value()
@@ -312,10 +356,13 @@ class MainWindow(uiclass, baseclass):
         self.regions2[var_up] = 1 # Replace values by 1 ==> Binary image created
         self.regions2[var_down] = 0 # Replace values by 1 ==> Binary image created
 
-        self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
-        self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
+        # self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
+        # self.region2 = ndi.binary_fill_holes(self.regions2).astype("bool")
+        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
 
-        self.binary_regions = ndi.binary_opening(self.binary_regions, iterations = 2) # Opening for better result
+        # self.binary_regions = ndi.binary_opening(self.binary_regions, iterations = 2) # Opening for better result
+        self.binary_regions = np.copy(1-self.regions2)
+        self.binary_regions = ndi.binary_fill_holes(self.binary_regions).astype("bool")
 
         self.displayBinary1(self.binary_regions) # Display the thresholded map
 
@@ -323,28 +370,58 @@ class MainWindow(uiclass, baseclass):
         self.Otsu2_Value = self.ClassBox2.value()
         self.binary_regions_distance = ndi.distance_transform_edt(1-self.binary_regions)
         
-        # Segmentation of the intensities for a given number of classes
-        thresholds = filters.threshold_multiotsu(self.binary_regions_distance, classes = self.Otsu2_Value) # Definition of the threshold values
-        self.regions_distance = np.digitize(self.binary_regions_distance, bins=thresholds) # Using the threshold values, we generate the regions.
+        if self.Otsu2_Value <= 5:
+            
+            # Segmentation of the intensities for a given number of classes
+            thresholds = filters.threshold_multiotsu(self.binary_regions_distance, classes = self.Otsu2_Value) # Definition of the threshold values
+            self.regions_distance = np.digitize(self.binary_regions_distance, bins=thresholds) # Using the threshold values, we generate the regions.
 
-        self.displayOtsu2(self.regions_distance) # Display the Otsu map
+            self.displayOtsu2(self.regions_distance) # Display the Otsu map
+        
+        else: # Application of Kmean approach for nbr of classes higher than 5
+            height, width = self.binary_regions_distance.shape
+            
+            self.binary_regions_distanceK = np.copy(self.binary_regions_distance)
+            pixels = self.binary_regions_distanceK.reshape((height * width, 1))
+        
+            kmeans = KMeans(n_clusters=self.Otsu2_Value, random_state=0)
+            kmeans.fit(pixels)
+
+            # Obtenir les étiquettes de cluster pour chaque pixel
+            labels = kmeans.labels_
+
+            # Obtenir les centres des clusters
+            cluster_centers = kmeans.cluster_centers_
+
+            # Trier les centres des clusters par ordre d'intensité
+            sorted_indices = np.argsort(cluster_centers.flatten())
+
+            # Réassigner les labels en fonction de l'ordre d'intensité des clusters
+            sorted_labels = np.zeros_like(labels)
+            for i, idx in enumerate(sorted_indices):
+                sorted_labels[labels == idx] = i
+
+            # Redimensionner les étiquettes de cluster en une image 2D
+            self.regions_distance = sorted_labels.reshape((height, width))
+            
+            self.displayOtsu2(self.regions_distance) # Display the Otsu map
 
     def Binary_2(self):
         self.Binary2_Value = self.ThresholdBox_2.value()
         
         self.binary_regions2 = np.copy(self.regions_distance)
         var = np.where(self.binary_regions2 > self.Binary2_Value) # Every pixel with value > Binary2_Value is considerered
-        self.binary_regions2[var] = 5 # Replace thoses pixel by a contant value of 5
+        self.binary_regions2[var] = self.Binary2_Value + 5 # Replace thoses pixel by a contant value of 5
       
         self.restored_grains = np.zeros((len(self.binary_regions2),len(self.binary_regions2[0])))
-        self.restored_grains[var] = 5
-        self.restored_grains = ndi.binary_fill_holes(self.restored_grains).astype("bool") # Fill holes processing # Restored grain 
+        self.restored_grains[var] = self.Binary2_Value + 5
+        # self.restored_grains = ndi.binary_fill_holes(self.restored_grains).astype("bool") # Fill holes processing # Restored grain 
 
-        var = np.where(self.restored_grains == True) # Every pixel with value > Binary2_Value is considerered
-        self.binary_regions2[var] = 5
+        var = np.where(self.restored_grains == self.Binary2_Value + 5) # Every pixel with value > Binary2_Value is considerered
+        self.binary_regions2[var] = self.Binary2_Value + 5
         
         # Creation of the overlay map: map and restored pixels location
-        var = np.where(self.restored_grains == True)
+        var = np.where(self.restored_grains == self.Binary2_Value + 5)
         self.overlay_KAD_restored = np.copy(self.InitKAD_map)
         self.overlay_KAD_restored[var] = 1   
         
@@ -363,16 +440,26 @@ class MainWindow(uiclass, baseclass):
         Combo_data = self.overlay_KAD_restored
         self.ChoiceBox.addItem(Combo_text, Combo_data)
         
+        # Compute for the error estimation
+        self.restored_grains_lower = np.zeros((len(self.binary_regions2),len(self.binary_regions2[0])))
+        self.restored_grains_upper = np.zeros((len(self.binary_regions2),len(self.binary_regions2[0])))
+
+        var = np.where(self.binary_regions2 > self.Binary2_Value + 1) # Every pixel with value > Binary2_Value is considerered
+        self.restored_grains_lower[var] = self.Binary2_Value + 5
+        
+        var = np.where(self.binary_regions2 > self.Binary2_Value - 1) # Every pixel with value > Binary2_Value is considerered
+        self.restored_grains_upper[var] = self.Binary2_Value + 5
+        
         # Run the restored fraction computation
         self.Compute_restoredFrac()
         
     def Compute_restoredFrac(self):       
-        Dilate = morphology.binary_dilation(self.restored_grains) # Apply a binary dilatation of the pixels
-        Erode = morphology.binary_erosion(self.restored_grains) # Apply a binary dilatation of the pixels
+        fraction_base = (np.sum(self.restored_grains == self.Binary2_Value + 5)/self.restored_grains.size)*100 # Computation the restored fraction
+        fraction_lowerbound = (np.sum(self.restored_grains_lower == self.Binary2_Value + 5)/self.restored_grains.size)*100 # Computation the restored fraction
+        fraction_upperbound = (np.sum(self.restored_grains_upper == self.Binary2_Value + 5)/self.restored_grains.size)*100 # Computation the restored fraction
 
-        fraction_base = (np.sum(self.restored_grains == True)/self.restored_grains.size)*100 # Computation the restored fraction
-        fraction_lowerbound = (np.sum(Erode == True)/Erode.size)*100
-        fraction_upperbound = (np.sum(Dilate == True)/Dilate.size)*100
+        # fraction_lowerbound = (np.sum(Erode == True)/Erode.size)*100
+        # fraction_upperbound = (np.sum(Dilate == True)/Dilate.size)*100
 
         var = [fraction_base,fraction_lowerbound,fraction_upperbound]
         self.fraction_mean = np.round(np.mean(var),2)
@@ -415,9 +502,16 @@ class MainWindow(uiclass, baseclass):
         
         tf.imwrite(PathDir + '/Map_CLAHE.tiff', np.rot90(np.flip(self.InitKAD_map, 0), k=1, axes=(1, 0)))
         tf.imwrite(PathDir + '/Filtered_map.tiff', np.rot90(np.flip(self.FilteredKAD_map, 0), k=1, axes=(1, 0)))  
-        tf.imwrite(PathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
-        tf.imwrite(PathDir + '/Binary_Otsu.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)))
-        tf.imwrite(PathDir + '/Otsu_2.tiff', np.rot90(np.flip(self.regions_distance, 0), k=1, axes=(1, 0)).astype('float32')) 
+        if self.Otsu1_Value <= 5:
+            tf.imwrite(PathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+        if self.Otsu1_Value > 5:
+            tf.imwrite(PathDir + '/Binary_Kmean.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)))
+        
+        if self.Otsu2_Value <= 5:
+            tf.imwrite(PathDir + '/Otsu_2.tiff', np.rot90(np.flip(self.regions_distance, 0), k=1, axes=(1, 0)).astype('float32')) 
+        if self.Otsu2_Value > 5:
+            tf.imwrite(PathDir + '/Kmean_2.tiff', np.rot90(np.flip(self.regions_distance, 0), k=1, axes=(1, 0)).astype('float32')) 
+
         tf.imwrite(PathDir + '/Threshold_2.tiff', np.rot90(np.flip(self.binary_regions2, 0), k=1, axes=(1, 0)).astype('float32'))  # Map with restored pixel = 5
         tf.imwrite(PathDir + '/Restored_grains_only.tiff', np.rot90(np.flip(self.restored_grains, 0), k=1, axes=(1, 0))) # Map with restored pixel = 5
         tf.imwrite(PathDir + '/Overlay_map_restored.tiff', np.rot90(np.flip(self.overlay_KAD_restored, 0), k=1, axes=(1, 0))) # Map with restored pixel = 5
@@ -425,11 +519,20 @@ class MainWindow(uiclass, baseclass):
         with open(PathDir + '\Restored grains determination.txt', 'w') as file:
             file.write("KAD data: " + str(self.flag_KAD))
             file.write("\nFiltering parameter: " + str(self.Filter_choice) + " - " + (str(self.Filter_value)))   
-            file.write("\nOtsu n°1 class: "+ str(self.Otsu1_Value) + "\nThresholded n°1 classes (keep values equal or higher than): " + str(self.Binary1_Value))   
-            file.write("\nOtsu n°2 class: "+ str(self.Otsu2_Value) + "\nThresholded n°2 classes (keep values higher than): " + str(self.Binary2_Value))     
-            file.write("\nRestored fraction: "+ str(self.fraction_mean) + ' \u00B1 ' + str(self.fraction_std) + ' % ')
+            if self.Otsu1_Value <= 5:
+                file.write("\nOtsu n°1 class: "+ str(self.Otsu1_Value) + "\nThresholded n°1 classes (keep values equal or higher than): " + str(self.Binary1_Value))   
+            if self.Otsu1_Value > 5:
+                file.write("\nKmean n°1 class: "+ str(self.Otsu1_Value) + "\nThresholded n°1 classes (keep values equal or higher than): " + str(self.Binary1_Value))   
+            if self.Otsu2_Value <= 5:
+                file.write("\nOtsu n°2 class: "+ str(self.Otsu2_Value) + "\nThresholded n°2 classes (keep values higher than): " + str(self.Binary2_Value))     
+            if self.Otsu2_Value > 5:
+                file.write("\nKmean n°2 class: "+ str(self.Otsu2_Value) + "\nThresholded n°2 classes (keep values higher than): " + str(self.Binary2_Value))     
 
-        self.popup_message("Restored grain determination","Saving process is over.",'icons/Restored_Icons.png')
+            file.write("\nRestored fraction: "+ str(self.fraction_mean) + ' \u00B1 ' + str(self.fraction_std) + ' % ')
+            file.write("\nX dimension (pixel): "+ str(len(self.InitKAD_map)))
+            file.write("\nY dimension (pixel): "+ str(len(self.InitKAD_map[0])))
+
+        self.popup_message("Restored grain","Saving process is over.",'icons/Restored_Icons.png')
 
     def displayExpKAD(self, series): # Display of initial KAD map
         self.KADSeries.addItem(self.crosshair_v1, ignoreBounds=True)
@@ -652,50 +755,86 @@ class MainWindow(uiclass, baseclass):
                 self.crosshair_v6.setPos(mousePoint.x())
                 self.crosshair_h6.setPos(mousePoint.y())
 
-            self.x = int(mousePoint.x())
-            self.y = int(mousePoint.y())
-            
-            self.printClick(self.x, self.y, sender)
+            try:
+                self.x = int(mousePoint.x())
+                self.y = int(mousePoint.y())
+                
+                self.printClick(self.x, self.y, sender)
+            except:
+                pass
     
     def mouseClick(self, e):
         pos = e[0]
         
         self.mouseLock.toggle()
-        
-        fromPosX = pos.scenePos()[0]
-        fromPosY = pos.scenePos()[1]
-        
-        posQpoint = QtCore.QPointF()
-        posQpoint.setX(fromPosX)
-        posQpoint.setY(fromPosY)
+        sender = self.sender()
 
-        if self.KADSeries.view.sceneBoundingRect().contains(posQpoint):
-                
-            item = self.KADSeries.view
-            mousePoint = item.mapSceneToView(posQpoint) 
-
+        if self.KADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.FiltKADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.Otsu1Series.view.sceneBoundingRect().contains(pos)\
+            or self.Binary1Series.view.sceneBoundingRect().contains(pos)\
+            or self.Otsu2Series.view.sceneBoundingRect().contains(pos)\
+            or self.Binary2Series.view.sceneBoundingRect().contains(pos):   
+            
+            if sender == self.proxy1:
+                item = self.KADSeries.view
+            elif sender == self.proxy3:
+                item = self.FiltKADSeries.view
+            elif sender == self.proxy5:
+                item = self.Otsu1Series.view
+            elif sender == self.proxy7:
+                item = self.Binary1Series.view
+            elif sender == self.proxy9:
+                item = self.Otsu2Series.view
+            else:
+                item = self.Binary2Series.view
+            
+            mousePoint = item.mapSceneToView(pos) 
+                 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
+            
+            self.crosshair_v2.setPos(mousePoint.x())
+            self.crosshair_h2.setPos(mousePoint.y())
+            
+            self.crosshair_v3.setPos(mousePoint.x())
+            self.crosshair_h3.setPos(mousePoint.y())
+            
+            self.crosshair_v4.setPos(mousePoint.x())
+            self.crosshair_h4.setPos(mousePoint.y())
+            
+            self.crosshair_v5.setPos(mousePoint.x())
+            self.crosshair_h5.setPos(mousePoint.y())
+            
+            self.crosshair_v6.setPos(mousePoint.x())
+            self.crosshair_h6.setPos(mousePoint.y())
                  
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())
             
     def printClick(self, x, y, sender):
         try: # Display values of Otsu1 and Otsu2
-            self.Otsu1_label.setText("Otsu classes n°1: " + str(self.regions[x, y]))
-            self.Otsu2_label.setText("Otsu classes n°2: " + str(self.regions_distance[x, y]))
+            if self.Otsu1_Value <= 5:
+                self.Otsu1_label.setText("Otsu classes n°1: " + str(self.regions[x, y]))
+            if self.Otsu1_Value > 5:
+                self.Otsu1_label.setText("Kmean classes n°1: " + str(self.regions[x, y]))
+            
+            if self.Otsu2_Value <= 5:
+                self.Otsu2_label.setText("Otsu classes n°2: " + str(self.regions_distance[x, y]))
+            if self.Otsu2_Value > 5:
+                self.Otsu2_label.setText("Kmean classes n°2: " + str(self.regions_distance[x, y]))
         except:
             pass
             
         if self.flag_restored_only == True: # Display value of restored
             try:
-                self.Threshold2_label.setText("Threshold n°2: " + str(self.restored_grains[x, y]))
+                self.Threshold2_label.setText("Restored: " + str(self.restored_grains[x, y]))
             except:
                 pass
             
         if self.flag_restored_struc == True: # Display value of restored (threshold)
             try:
-                self.Threshold2_label.setText("Threshold n°2: " + str(self.binary_regions2[x, y]))        
+                self.Threshold2_label.setText("Restored: " + str(self.binary_regions2[x, y]))        
             except:
                 pass
         

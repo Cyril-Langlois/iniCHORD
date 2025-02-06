@@ -14,12 +14,15 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushBut
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 from skimage import morphology, filters, exposure
 from skimage.measure import label, regionprops
 from skimage.segmentation import expand_labels
 from scipy import ndimage as ndi
+from sklearn.cluster import KMeans
+
+import cv2
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Grain_Treatment.ui")
@@ -41,6 +44,7 @@ class MainWindow(uiclass, baseclass):
         self.flag_info_filtered = False # No consideration of excluded pixels (pxls) at the opening
         self.flag_info_filtered2 = False # No consideration of excluded pixels (µm) at the opening
         self.flag_Border = False #No consideration of excluded borders at the opening
+        self.flag_DenLabels = False
         
         self.x = 0
         self.y = 0
@@ -82,20 +86,20 @@ class MainWindow(uiclass, baseclass):
         self.Save_bttn.clicked.connect(self.Save_results) # Saving process (processing steps, results, infos)
         self.Push_validate.clicked.connect(self.validate_data)
         self.Grainsize_bttn.clicked.connect(self.labels_computation)
-        self.exclude_border_bttn.clicked.connect(self.exclude_border) # Exclude labels with borders
                 
         self.PixelSize_edit.setText("Add a pixel size (µm).")
         self.PixelSize_edit.editingFinished.connect(self.changeText) # Take into account the pixel size
         
         self.PresetBox.currentTextChanged.connect(self.auto_set) # Allow different pre-set to be used for computation
         self.spinBox_filter.valueChanged.connect(self.Filter_changed) # Change initial filtering
+        self.CLAHE_SpinBox.valueChanged.connect(self.CLAHE_changed) # Change initial filtering
         self.Den_spinbox.valueChanged.connect(self.denoise_labels) # Change denoising value of the labels
         self.Filter_labelBox.valueChanged.connect(self.Filter_labels) # To exclude small grains
         self.ChoiceBox.currentTextChanged.connect(self.ViewLabeling) # Change displayed map
         
         self.Grainsize_bttn.setEnabled(False)
         
-        self.label_filterdiameter.setText("Exclude \u2300 < x(pxls)")
+        # self.label_filterdiameter.setText("Exclude \u2300 < x(pxls)")
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
         self.mouseLock.setVisible(False)
@@ -122,7 +126,7 @@ class MainWindow(uiclass, baseclass):
         geometry = screen.availableGeometry()
         
         # Control window position and dimensions
-        self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
+        self.move(int(geometry.width() * 0.02), int(geometry.height() * 0.02))
         self.resize(int(geometry.width() * 0.9), int(geometry.height() * 0.6))
         self.screen = screen
         
@@ -152,6 +156,9 @@ class MainWindow(uiclass, baseclass):
         msg.adjustSize() # Automatically adjust size of the window
         
         msg.exec_() # Display the message box
+        
+        # Raise the main window to ensure it stays above the first window but below the message box
+        self.raise_()
 
     def show_choice_message(self): # Qmessage box for the try import at the initialization 
         msg_box = QMessageBox(self)
@@ -171,7 +178,7 @@ class MainWindow(uiclass, baseclass):
             self.flag_KAD = False
 
     def data_choice(self): # Allow to apply other treatment depending if the data is a KAD one
-        msg = QMessageBox.question(self, 'Restored grains', 'Is it a KAD data ?')
+        msg = QMessageBox.question(self, 'Grain boundaries', 'Is it a KAD data ?')
         if msg == QMessageBox.Yes:
             self.flag_KAD = True
         if msg == QMessageBox.No:
@@ -196,8 +203,8 @@ class MainWindow(uiclass, baseclass):
         
         self.InitKAD_map = np.nan_to_num(self.InitKAD_map) # Exclude NaN value if needed
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
-        self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
-        
+        # self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.07, nbins=256) # CLAHE step
+    
         self.displayExpKAD(self.InitKAD_map) # Display of the map
         
         # If data is too large, hence the labeling step is not performed to avoid long computation prior checking if the data is good to be labeled
@@ -209,7 +216,7 @@ class MainWindow(uiclass, baseclass):
     def run_init_computation(self): # Run a first analysis automatically
         self.InitKAD_map = np.nan_to_num(self.InitKAD_map) # Exclude NaN value if needed
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
-        self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
+        # self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.07, nbins=256) # CLAHE step
         
         self.displayExpKAD(self.InitKAD_map) # Display of the map
         
@@ -220,10 +227,12 @@ class MainWindow(uiclass, baseclass):
             self.high_auto_set()
 
     def auto_set(self): # Allow different pre-set to be used
+        self.CLAHE_changed()  
+    
         self.Preset_choice = self.PresetBox.currentText()
 
         if self.Preset_choice == "Undeformed sample":
-            self.spinBox_filter.setValue(0.005)
+            self.spinBox_filter.setValue(0.001)
             self.ClassBox.setValue(4)
             self.ThresholdBox.setValue(1)
 
@@ -253,12 +262,13 @@ class MainWindow(uiclass, baseclass):
             self.Grain_labeling() # Compute a labeled map (undenoised)
 
     def high_auto_set(self):
-            self.popup_message("Grain boundaries determination","Labeling step is not apply to limit calculation times (large data map).",'icons/Grain_Icons.png')
+            self.popup_message("Grain boundaries","Labeling step is not apply to limit calculation times (large data map).",'icons/Grain_Icons.png')
             
             self.spinBox_filter.setValue(0.005)
             self.ClassBox.setValue(3)
             self.ThresholdBox.setValue(1)
 
+            self.CLAHE_changed()  
             self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
@@ -267,14 +277,22 @@ class MainWindow(uiclass, baseclass):
         self.pixelSize = float(self.PixelSize_edit.text())
         self.flag_PixelSize = True # Consideration of pixel size
 
+    def CLAHE_changed(self):
+        self.CLAHE_value = self.CLAHE_SpinBox.value()
+        self.CLAHE_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
+
+        # self.CLAHE_map = filters.unsharp_mask(self.CLAHE_map, radius=1, amount=1)
+
+        self.displayFilteredKAD(self.CLAHE_map) # Display the map after load
+
     def Filter_changed(self): # KAD filtering processes
         self.Filter_choice = self.FilterBox.currentText()
         
-        if self.Filter_choice == "Butterworth (HP) filter":
-            self.spinBox_filter.setRange(0.001,0.5)
+        if self.Filter_choice == "Butterworth":
+            self.spinBox_filter.setRange(0.001,0.1)
             self.spinBox_filter.setSingleStep(0.001)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.butterworth(self.FilteredKAD_map,self.Filter_value,True,8)
             
@@ -282,14 +300,14 @@ class MainWindow(uiclass, baseclass):
             self.spinBox_filter.setRange(0,10)
             self.spinBox_filter.setSingleStep(1)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.gaussian(self.FilteredKAD_map, self.Filter_value)
             
         elif self.Filter_choice == "Top-hat":
             self.spinBox_filter.setRange(1,20)
             self.spinBox_filter.setSingleStep(1)
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             footprint = morphology.disk(self.Filter_value)
             self.FilteredKAD_map = morphology.white_tophat(self.FilteredKAD_map, footprint)
@@ -299,12 +317,42 @@ class MainWindow(uiclass, baseclass):
     def Otsu1(self): # Segment map into classes
         self.Otsu1_Value = self.ClassBox.value()
 
-        # Segmentation of the intensities for a given number of classes
-        thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
-        self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
+        if self.Otsu1_Value <= 5:
+            # Segmentation of the intensities for a given number of classes
+            thresholds = filters.threshold_multiotsu(self.FilteredKAD_map, classes = self.Otsu1_Value) # Definition of the threshold values
+            self.regions = np.digitize(self.FilteredKAD_map, bins=thresholds) # Using the threshold values, we generate the regions.
+    
+            self.flag_info = True 
+            self.displayOtsu1(self.regions) # Display the Otsu map
+            
+        else: # Application of Kmean approach for nbr of classes higher than 5
+            height, width = self.FilteredKAD_map.shape
+            
+            self.FilteredKAD_mapK = np.copy(self.FilteredKAD_map)
+            pixels = self.FilteredKAD_mapK.reshape((height * width, 1))
+        
+            kmeans = KMeans(n_clusters=self.Otsu1_Value, random_state=0)
+            kmeans.fit(pixels)
 
-        self.flag_info = True 
-        self.displayOtsu1(self.regions) # Display the Otsu map
+            # Obtenir les étiquettes de cluster pour chaque pixel
+            labels = kmeans.labels_
+
+            # Obtenir les centres des clusters
+            cluster_centers = kmeans.cluster_centers_
+
+            # Trier les centres des clusters par ordre d'intensité
+            sorted_indices = np.argsort(cluster_centers.flatten())
+
+            # Réassigner les labels en fonction de l'ordre d'intensité des clusters
+            sorted_labels = np.zeros_like(labels)
+            for i, idx in enumerate(sorted_indices):
+                sorted_labels[labels == idx] = i
+
+            # Redimensionner les étiquettes de cluster en une image 2D
+            self.regions = sorted_labels.reshape((height, width))
+            
+            self.flag_info = True 
+            self.displayOtsu1(self.regions) # Display the Otsu map
 
     def Binary_1(self): # Binarization of the Otsu map for a given threshold level
         self.Binary1_Value = self.ThresholdBox.value()
@@ -316,9 +364,17 @@ class MainWindow(uiclass, baseclass):
         self.regions2[var_up] = 1 # Replace values by 1 ==> Binary image created
         self.regions2[var_down] = 0 # Replace values by 1 ==> Binary image created
 
-        self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
-        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
+        self.regions3 = np.copy(self.regions2)
+        # self.regions3 =  1 - ndi.binary_fill_holes( self.regions3).astype("bool") # a voir
+        # self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
+        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity / del for accuracy improvement (reduction of structure lossed) 
         self.binary_regions = 1-self.regions3
+        
+        # Artificial boundaries 
+        self.binary_regions[0, :] = 0  # Premier rangée
+        self.binary_regions[-1, :] = 0  # Dernière rangée
+        self.binary_regions[:, 0] = 0  # Première colonne
+        self.binary_regions[:, -1] = 0  # Dernière colonne
 
         self.displayBinary1(self.binary_regions) # Display the thresholded map
 
@@ -384,20 +440,20 @@ class MainWindow(uiclass, baseclass):
         self.Corrected_img_diameter = np.copy(self.img_diameter) # Map of the grains (diameter value map) with border corrected
         self.Corrected_label_img = np.copy(self.Var_Labels) # Map of the grains (labeled value map) with border corrected
 
-        for i in range(len(var[0])):
-            varx = var[0][i] # X position of the pixel
-            vary = var[1][i] # X position of the pixel
+        # for i in range(len(var[0])):
+        #     varx = var[0][i] # X position of the pixel
+        #     vary = var[1][i] # Y position of the pixel
                 
-            var_diameter = self.img_diameter[varx-x:varx+y,vary-x:vary+y]
-            var_label = self.Var_Labels[varx-x:varx+y,vary-x:vary+y]
+        #     var_diameter = self.img_diameter[varx-x:varx+y,vary-x:vary+y]
+        #     var_label = self.Var_Labels[varx-x:varx+y,vary-x:vary+y]
                 
-            if var_diameter.size != 0:
+        #     if var_diameter.size != 0:
           
-                value_diameter = np.max(var_diameter)
-                value_label = np.max(var_label)
+        #         value_diameter = np.max(var_diameter)
+        #         value_label = np.max(var_label)
                 
-                self.Corrected_img_diameter[varx,vary] = value_diameter
-                self.Corrected_label_img[varx,vary] = value_label
+        #         self.Corrected_img_diameter[varx,vary] = value_diameter
+        #         self.Corrected_label_img[varx,vary] = value_label
 
         # Creation of the overlay map (KAD and grain boundaries)
         self.overlay_KAD_GB = np.copy(self.InitKAD_map)
@@ -436,7 +492,7 @@ class MainWindow(uiclass, baseclass):
         self.displaylabels(self.Corrected_label_img) # Display the labeled image
             
         # Finished message
-        self.popup_message("Grain boundaries determination","Properties computed.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries","Properties computed.",'icons/Grain_Icons.png')
         
     def extract_value_list(self): # Extract informations       
         # Equivalent diameter data 
@@ -620,8 +676,8 @@ class MainWindow(uiclass, baseclass):
             # Filtered Equivalent diameter (µm)
             self.filter_labeldiameter_metric_cleaned = self.zero_out_positions(self.filter_labeldiameter_metric, zero_positions)
 
-        # Finished message
-        self.popup_message("Grain boundaries determination","Border excluded.",'icons/Grain_Icons.png')
+        # # Finished message
+        # self.popup_message("Grain boundaries","Borders will be excluded during saving.",'icons/Grain_Icons.png')
 
     def get_border_positions(self,image):# Fonction pour obtenir les positions des pixels des bordures
         border_positions = []
@@ -683,7 +739,7 @@ class MainWindow(uiclass, baseclass):
                 for j in range (len(regions)) :
                     moyen_profil[j][i]=regions[j].mean_intensity 
         except:
-            self.popup_message("Grain boundaries determination","Computation of clustered profiles failed. Check for data.",'icons/Grain_Icons.png')
+            self.popup_message("Grain boundaries","Computation of clustered profiles failed. Check for data.",'icons/Grain_Icons.png')
             return
         
         # Creation of the clustered profiles list
@@ -701,6 +757,10 @@ class MainWindow(uiclass, baseclass):
         self.Labels_int = Labels_int
 
     def Save_results(self):
+        
+        if self.exclude_border_box.isChecked(): # If QCheckBox 'Import image reference' is True, then the function is run
+            self.exclude_border() 
+        
         ti = time.strftime("%Y-%m-%d__%Hh-%Mm-%Ss") # Absolute time 
         
         directory = "Grain_segmentation_" + ti # Name of the main folder
@@ -711,7 +771,10 @@ class MainWindow(uiclass, baseclass):
         with open(PathDir + '\Grain boundaries determination.txt', 'w') as file:
             file.write("KAD data: " + str(self.flag_KAD))
             file.write("\nFiltering parameter: " + str(self.Filter_choice) + " - " + (str(self.Filter_value)))   
-            file.write("\nOtsu class: "+ str(self.Otsu1_Value) + "\nThresholded classes (keep values equal or higher than): " + str(self.Binary1_Value))   
+            if self.Otsu1_Value <= 5:
+                file.write("\nOtsu class: "+ str(self.Otsu1_Value) + "\nThresholded classes (keep values equal or higher than): " + str(self.Binary1_Value))   
+            if self.Otsu1_Value > 5:
+                file.write("\nKmean class: "+ str(self.Otsu1_Value) + "\nThresholded classes (keep values equal or higher than): " + str(self.Binary1_Value))
             file.write("\nLabel denoising step: "+ str(self.flag_DenLabels))
             file.write("\nLabel denoising value: "+ str(self.Den_spinbox.value()))
             file.write("\nGrain diameter excluded (below): "+ str(self.Filter_labelValue))
@@ -730,8 +793,12 @@ class MainWindow(uiclass, baseclass):
         
         tf.imwrite(SubPathDir + '/Map_CLAHE.tiff', np.rot90(np.flip(self.InitKAD_map, 0), k=1, axes=(1, 0)))
         tf.imwrite(SubPathDir + '/Filtered_map.tiff', np.rot90(np.flip(self.FilteredKAD_map, 0), k=1, axes=(1, 0)))  
-        tf.imwrite(SubPathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
-        tf.imwrite(SubPathDir + '/Binary_Otsu.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)))
+        if self.Otsu1_Value <= 5:
+            tf.imwrite(SubPathDir + '/Otsu.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(SubPathDir + '/Binary_Otsu.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+        if self.Otsu1_Value > 5:
+            tf.imwrite(SubPathDir + '/Kmean.tiff', np.rot90(np.flip(self.regions, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(SubPathDir + '/Binary_Kmean.tiff', np.rot90(np.flip(self.binary_regions, 0), k=1, axes=(1, 0)).astype('float32')) 
 
         if self.flag_Border == True:
             self.Corrected_label_img = self.Var_Labels_cleaned
@@ -801,11 +868,11 @@ class MainWindow(uiclass, baseclass):
             np.savetxt(Metric_SubPathDir + "/Filtered_grain_size_list_µm.csv", self.filtered_diameter_metric, delimiter = ",")
 
         # Finished message
-        self.popup_message("Grain boundaries determination","Saving process is over.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries","Saving process is over.",'icons/Grain_Icons.png')
 
     def validate_data(self): # Push labeled image in the main GUI
-        self.parent.Label_image = np.copy(self.Corrected_label_img) # Copy in the main GUI
-        self.parent.StackList.append(self.Corrected_label_img) # Add the data in the stack list
+        self.parent.Label_image = np.copy(self.Corrected_label_img.astype('float32')) # Copy in the main GUI
+        self.parent.StackList.append(self.Corrected_label_img.astype('float32')) # Add the data in the stack list
         
         Combo_text = '\u2022 Grain labeling'
         Combo_data = self.Corrected_label_img
@@ -824,7 +891,7 @@ class MainWindow(uiclass, baseclass):
         self.parent.choiceBox.setEnabled(True)
         
         # Finished message
-        self.popup_message("Grain boundaries determination","Labeled image has been exported to the main GUI.",'icons/Grain_Icons.png')
+        self.popup_message("Grain boundaries","Labeled image has been exported to the main GUI.",'icons/Grain_Icons.png')
 
     def displayExpKAD(self, series): # Display of initial map
         self.KADSeries.addItem(self.crosshair_v1, ignoreBounds=True)
@@ -1016,29 +1083,52 @@ class MainWindow(uiclass, baseclass):
         pos = e[0]
         
         self.mouseLock.toggle()
-        
-        fromPosX = pos.scenePos()[0]
-        fromPosY = pos.scenePos()[1]
-        
-        posQpoint = QtCore.QPointF()
-        posQpoint.setX(fromPosX)
-        posQpoint.setY(fromPosY)
-
-        if self.KADSeries.view.sceneBoundingRect().contains(posQpoint):
-                
-            item = self.KADSeries.view
-            mousePoint = item.mapSceneToView(posQpoint) 
-
+        sender = self.sender()
+    
+        if self.KADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.FiltKADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.Otsu1Series.view.sceneBoundingRect().contains(pos)\
+            or self.Binary1Series.view.sceneBoundingRect().contains(pos)\
+            or self.LabelsSeries.view.sceneBoundingRect().contains(pos):    
+            
+            if sender == self.proxy1:
+                item = self.KADSeries.view
+            elif sender == self.proxy3:
+                item = self.FiltKADSeries.view
+            elif sender == self.proxy5:
+                item = self.Otsu1Series.view
+            elif sender == self.proxy7:
+                item = self.Binary1Series.view
+            else:
+                item = self.LabelsSeries.view
+            
+            mousePoint = item.mapSceneToView(pos) 
+                 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
-                 
+            
+            self.crosshair_v2.setPos(mousePoint.x())
+            self.crosshair_h2.setPos(mousePoint.y())
+            
+            self.crosshair_v3.setPos(mousePoint.x())
+            self.crosshair_h3.setPos(mousePoint.y())
+            
+            self.crosshair_v4.setPos(mousePoint.x())
+            self.crosshair_h4.setPos(mousePoint.y())
+            
+            self.crosshair_v5.setPos(mousePoint.x())
+            self.crosshair_h5.setPos(mousePoint.y())
+
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())
             
     def printClick(self, x, y, sender):
         if self.flag_info == True:
             try:
-                self.Otsu1_label.setText("Otsu classes: " + str(self.regions[x, y]))
+                if self.Otsu1_Value <= 5:
+                    self.Otsu1_label.setText("Otsu classes: " + str(self.regions[x, y]))
+                elif self.Otsu1_Value > 5:
+                    self.Otsu1_label.setText("Kmean classes: " + str(self.regions[x, y]))
             except:
                 pass
             

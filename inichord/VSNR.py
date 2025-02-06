@@ -15,7 +15,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/VSNR.ui")

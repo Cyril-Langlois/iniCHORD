@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>347</width>
-    <height>429</height>
+    <width>503</width>
+    <height>491</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -213,7 +213,7 @@ QGroupBox {
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../Traitement_stack/icons/import_icon.png</normaloff>../Traitement_stack/icons/import_icon.png</iconset>
+              <normaloff>icons/import_icon.png</normaloff>icons/import_icon.png</iconset>
             </property>
            </widget>
           </item>
@@ -224,6 +224,10 @@ QGroupBox {
             </property>
             <property name="text">
              <string>Open references</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>icons/import_icon.png</normaloff>icons/import_icon.png</iconset>
             </property>
            </widget>
           </item>
@@ -493,9 +497,79 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </property>
              <property name="icon">
               <iconset>
-               <normaloff>../Traitement_stack/icons/run_icon.png</normaloff>../Traitement_stack/icons/run_icon.png</iconset>
+               <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
              </property>
             </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <widget class="QLabel" name="label_checkseries">
+               <property name="font">
+                <font>
+                 <family>Noto Sans Cond</family>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+               </property>
+               <property name="text">
+                <string>Series</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="Checkseries_box">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>79</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>117</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Choose a number of classes to perform Otsu segmentation.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="minimum">
+                <number>2</number>
+               </property>
+               <property name="maximum">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>2</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -586,7 +660,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </property>
              <property name="icon">
               <iconset>
-               <normaloff>../Traitement_stack/icons/run_icon.png</normaloff>../Traitement_stack/icons/run_icon.png</iconset>
+               <normaloff>icons/filter_icon.png</normaloff>icons/filter_icon.png</iconset>
              </property>
             </widget>
            </item>
@@ -634,7 +708,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../Traitement_stack/icons/save_icon.png</normaloff>../Traitement_stack/icons/save_icon.png</iconset>
+            <normaloff>icons/save_icon.png</normaloff>icons/save_icon.png</iconset>
           </property>
          </widget>
         </item>
@@ -885,7 +959,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>347</width>
+     <width>503</width>
      <height>20</height>
     </rect>
    </property>

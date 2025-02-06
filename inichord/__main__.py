@@ -18,31 +18,37 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-from inichord import General_Functions as gf
-from inichord import Profile_Modification as fct
-from inichord import Edit_Tools as sm
-from inichord import Registration as align
-from inichord import Remove_FFT as RemFFT
-from inichord import Remove_Outliers as rO
-from inichord import NLMD as nl
-from inichord import BM3D as bm
-from inichord import VSNR as vs
-from inichord import Auto_Denoising as autoden
-from inichord import KAD_Function as KADfunc
-from inichord import Contour_Map as Contour
-from inichord import Denoise_2Dmap as Denmap
-from inichord import Grain_Treatment as GB
-from inichord import Restored_Grains as Restored
-from inichord import Extract_Mosaic as Extract_mosaic
-from inichord import Batch_Processing as Batch
-from inichord import TwoD_Stitching as Img_Stitch
-from inichord import ThreeD_Stitching as Series_Stitch
-
-if "cupy" in sys.modules:
-    from indexGPU import Indexation_GUI as Indexation_TSG
+import General_Functions as gf
+import Profile_Modification as fct
+import Edit_Tools as sm
+import Registration as align
+import Remove_FFT as RemFFT
+import Remove_Outliers as rO
+import NLMD as nl
+import BM3D as bm
+import VSNR as vs
+import TV as tv
+import Auto_Denoising as autoden
+import KAD_Function as KADfunc
+import Contour_Map as Contour
+import Denoise_2Dmap as Denmap
+import Grain_Treatment as GB
+import Restored_Grains as Restored
+import Kmean as KmeanClust
+import Extract_Mosaic as Extract_mosaic
+import Batch_Processing as Batch
+import TwoD_Stitching as Img_Stitch
+import ThreeD_Stitching as Series_Stitch
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
+
+if "cupy" in sys.modules:
+    # from indexGPU import Indexation_GUI as Indexation_TSG
+    sys.path.append("F:\eCHORD\Programmation\indexGPU\indexGPU")
+    sys.path.append("J:\Recherche\Projet_FIB\Programmation\indexGPU\indexGPU")
+    sys.path.append("C:\\Users\\glhote1\\Desktop\\Post_doctorat\\indexGPU\\indexGPU")
+    import Indexation_GUI as Indexation_TSG
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -60,6 +66,7 @@ class MainWindow(uiclass, baseclass):
         self.color6 = (193, 167, 181,50) # Brush Color for legend in plot
 
         self.Open_data.clicked.connect(self.loaddata) # Load image series or 2D array (for KAD map)
+        self.Eight_bits_button.clicked.connect(self.convert_to_8bits)
         self.Edit_tools_button.clicked.connect(self.stackmodifier) # Modification of image series (cropping, binning, slicing)
         self.Registration_button.clicked.connect(self.Stackregistration) # Stack registration
         self.Background_remover_button.clicked.connect(self.FFTFiltering) # FFT background substraction
@@ -96,6 +103,7 @@ class MainWindow(uiclass, baseclass):
         # Buttons are not enables except [Open data ; Tool_choice ; Run button ; Indexation]
         self.Edit_tools_button.setEnabled(False)
         self.Registration_button.setEnabled(False)
+        self.Eight_bits_button.setEnabled(False)
         self.Background_remover_button.setEnabled(False)
         self.Remove_outliers_button.setEnabled(False)
         self.Manual_denoising_button.setEnabled(False)
@@ -106,11 +114,12 @@ class MainWindow(uiclass, baseclass):
         self.choiceBox.setEnabled(False)
         self.progressBar.setVisible(False) # The progress bar is hidden for clarity (used only for GRDD-GDS)
         self.mouseLock.setVisible(False)
+        self.Eight_bits_button.setVisible(False)
         
-        for i in range(0,3): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
+        for i in range(0,5): # Disable [Bleach correction ; STD map ; KAD map] at the beginning
             self.Tool_choice.model().item(i).setEnabled(False)
             
-        self.Tool_choice.setCurrentIndex(3) # Default selection at the "Grain boundaries" toolbox
+        self.Tool_choice.setCurrentIndex(5) # Default selection at the "Contour map" toolbox
         self.flag_image = False # Linked to the GRDD-GDS computation (image serie)
         self.flag_labeling = False # Linked to the GRDD-GDS computation (labeled image)
         self.flag_stitchKAD = False # In order to specify which data has been used for 2D stitching
@@ -137,7 +146,20 @@ class MainWindow(uiclass, baseclass):
             self.w.show()
     except:
         pass
-
+    
+    def convert_to_8bits(self):
+        if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)): #if not 8bits
+            self.eight_bits_img = gf.convertToUint8(self.Current_stack)
+            self.StackList.append(self.eight_bits_img)
+            Combo_text = '\u2022 8 bits data'
+            Combo_data = self.eight_bits_img
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            self.Current_stack = self.eight_bits_img
+            self.Info_box.insertPlainText("\n \u2022 Data has been converted to 8 bits.")
+            self.Eight_bits_button.setEnabled(False)
+        else:
+            self.Info_box.insertPlainText("\n \u2022 Data was already 8 bits type.")
+        
     def closeEvent(self, event):
         msgBox = QMessageBox(self)
         msgBox.setWindowTitle('Quit')
@@ -199,7 +221,7 @@ class MainWindow(uiclass, baseclass):
                     self.choiceBox.clear() # Clean the choiceBox
                     
                 try: # Delete of image series and current stack is any
-                    del(self.image,self.Current_stack)
+                    del(self.image, self.Current_stack)
                 except:
                     pass
 
@@ -247,7 +269,7 @@ class MainWindow(uiclass, baseclass):
                 self.image = np.flip(self.image, 1) # Flip the array
                 self.image = np.rot90(self.image, k=1, axes=(2, 1)) # Rotate the array
                 
-                for i in range(0,3): # Enable [Bleach correction ; STD map ; KAD map]
+                for i in range(0,5): # Enable [Bleach correction ; STD map ; KAD map]
                     self.Tool_choice.model().item(i).setEnabled(True)
                         
                 self.flag_image = True # Certifies that the stack of image has been imported (for GRDD-GDS computation)
@@ -268,7 +290,7 @@ class MainWindow(uiclass, baseclass):
             
             self.flag_image = True # Certifies that the stack of image has been imported (for GRDD-GDS computation)
             
-            for i in range(0,3): # Enable [Bleach correction ; STD map ; KAD map]
+            for i in range(0,5): # Enable [Bleach correction ; STD map ; KAD map]
                 self.Tool_choice.model().item(i).setEnabled(True)
             
             del (Var) # Delete Var which become useless
@@ -307,6 +329,7 @@ class MainWindow(uiclass, baseclass):
             
             # Activation of the widgets that were disable
             self.Edit_tools_button.setEnabled(True)
+            
             self.Registration_button.setEnabled(True)
             self.Background_remover_button.setEnabled(True)
             self.Remove_outliers_button.setEnabled(True)
@@ -316,6 +339,9 @@ class MainWindow(uiclass, baseclass):
             self.Reload_button.setEnabled(True)
             self.Choice_denoiser.setEnabled(True)
             self.choiceBox.setEnabled(True)
+            
+            if not (isinstance(self.Current_stack.flat[0], np.int8) or isinstance(self.Current_stack.flat[0], np.uint8)) :
+                self.Eight_bits_button.setEnabled(True)
             
             self.Tool_choice.setCurrentIndex(0) 
         except: # If the try is not possible, then nothing happens
@@ -356,6 +382,12 @@ class MainWindow(uiclass, baseclass):
         elif self.choice == "\u2022 KAD map": # If the data is the KAD map
             self.label_Treatment.setText("KAD map")
             self.displayDataview(self.KAD) # Display KAD map on the Treatment ImageView (dataview)
+        elif self.choice == "\u2022 AVG map": # If the data is the AVG map
+            self.label_Treatment.setText("AVG map")
+            self.displayDataview(self.avg_image) # Display AVG map on the Treatment ImageView (dataview)
+        elif self.choice == "\u2022 MED map": # If the data is the MED map
+            self.label_Treatment.setText("MED map")
+            self.displayDataview(self.med_image) # Display MED map on the Treatment ImageView (dataview)
         elif self.choice == "\u2022 Contour map": # If the data is the KAD map
             self.label_Treatment.setText("Contour map")
             self.displayDataview(self.contour_map) # Display KAD map on the Treatment ImageView (dataview)
@@ -407,6 +439,8 @@ class MainWindow(uiclass, baseclass):
         else:
             self.SavedStack = np.flip(self.SavedStack, 1)
             self.SavedStack = np.rot90(self.SavedStack, k=1, axes=(2, 1))
+        
+        self.SavedStack = self.SavedStack.astype('float32')
             
         gf.Saving_img_or_stack(self.SavedStack)
         self.Info_box.insertPlainText("\n \u2022 Data saved : " + str(self.choice))
@@ -438,13 +472,18 @@ class MainWindow(uiclass, baseclass):
             self.w.show()
         elif self.Manual_denoiser_choice == 'Manual VSNR':
             self.w = vs.MainWindow(self)
-            self.w.show()       
+            self.w.show()     
+        elif self.Manual_denoiser_choice == 'Manual TV':
+            self.w = tv.MainWindow(self)
+            self.w.show()      
 
     def AutoDenoisingStep(self): # Run the auto-denoising sub-gui
         if self.flag == True: # If an image reference was imported
             self.ExtractReference() # Extraction of the reference from the stack of images
             self.w = autoden.MainWindow(self)
             self.w.show()   
+            
+            self.flag = False
         
         elif self.flag == False: # If no image reference was imported
             self.w = autoden.MainWindow(self)
@@ -466,6 +505,34 @@ class MainWindow(uiclass, baseclass):
             self.Info_box.ensureCursorVisible()
             self.Info_box.insertPlainText("\n \u2022 STD map has been computed.")
             self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+            
+        elif self.Toolchoice == 'AVG map':
+            self.avg_image = np.nanmean(self.Current_stack,0) # Creation of the AVG map
+            self.displayDataview(self.avg_image)
+            
+            self.StackList.append(self.avg_image)
+            
+            Combo_text = '\u2022 AVG map'
+            Combo_data = self.avg_image
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            
+            self.Info_box.ensureCursorVisible()
+            self.Info_box.insertPlainText("\n \u2022 AVG map has been computed.")
+            self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
+            
+        elif self.Toolchoice == 'MED map':
+            self.med_image = np.median(self.Current_stack,0) # Creation of the MED map
+            self.displayDataview(self.med_image)
+            
+            self.StackList.append(self.med_image)
+            
+            Combo_text = '\u2022 MED map'
+            Combo_data = self.med_image
+            self.choiceBox.addItem(Combo_text, Combo_data)
+            
+            self.Info_box.ensureCursorVisible()
+            self.Info_box.insertPlainText("\n \u2022 MED map has been computed.")
+            self.choiceBox.setCurrentIndex(self.choiceBox.count() - 1) # Show the last data in the choiceBox QComboBox
           
         elif self.Toolchoice == 'Bleach correction': # Application of bleach correction if surface contamination
             self.Current_stack = gf.bleach_ratio(self.Current_stack)
@@ -486,7 +553,7 @@ class MainWindow(uiclass, baseclass):
             self.Info_box.insertPlainText("\n \u2022 KAD map construction in progress....")
             QApplication.processEvents()
             
-            self.stack_norm = KADfunc.centeredEuclidianNorm(self.Current_stack, 0) # Normalization of the image series
+            self.stack_norm = fct.centeredEuclidianNorm(self.Current_stack, 0) # Normalization of the image series
             self.KAD = KADfunc.Divided_KAD(self.stack_norm) # Compute the KAD map
             self.displayDataview(self.KAD)
             
@@ -514,6 +581,10 @@ class MainWindow(uiclass, baseclass):
             
         elif self.Toolchoice == "Restored grains": # Run the restored grains sub-gui
             self.w = Restored.MainWindow(self)
+            self.w.show()   
+            
+        elif self.Toolchoice == 'Kmean clustering': # Run the Kmean clustering of 3D series
+            self.w = KmeanClust.MainWindow(self)
             self.w.show()   
             
         elif self.Toolchoice == "GRDD-GDS": # Run the GRDD-GDS computation step

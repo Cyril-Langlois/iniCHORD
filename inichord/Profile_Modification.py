@@ -3,7 +3,7 @@
 import numpy as np
 # from scipy import ndimage
 # from scipy import fftpack, signal
-from inichord import General_Functions as gf
+import General_Functions as gf
 import scipy.io.wavfile
 from scipy.signal import savgol_filter, filtfilt, butter
 

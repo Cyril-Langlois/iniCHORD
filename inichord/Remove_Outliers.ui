@@ -350,7 +350,7 @@ QSlider::handle:horizontal {
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+            <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
           </property>
          </widget>
         </item>
@@ -403,7 +403,7 @@ QSlider::handle:horizontal {
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>TSG_icons/Export.png</normaloff>TSG_icons/Export.png</iconset>
+          <normaloff>icons/Export.png</normaloff>icons/Export.png</iconset>
         </property>
        </widget>
       </item>

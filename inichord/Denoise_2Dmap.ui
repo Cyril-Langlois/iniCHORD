@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>548</width>
-    <height>275</height>
+    <height>301</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -202,7 +202,7 @@ QGroupBox {
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../Traitement_stack/icons/import_icon.png</normaloff>../Traitement_stack/icons/import_icon.png</iconset>
+            <normaloff>icons/import_icon.png</normaloff>icons/import_icon.png</iconset>
           </property>
          </widget>
         </item>
@@ -424,6 +424,12 @@ font : 12pt &quot;Noto Sans Cond&quot;;
         </item>
         <item>
          <widget class="QPushButton" name="Push_validate">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Save data in a given folder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
@@ -432,7 +438,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../Traitement_stack/icons/Export.png</normaloff>../Traitement_stack/icons/Export.png</iconset>
+            <normaloff>icons/save_icon.png</normaloff>icons/save_icon.png</iconset>
           </property>
          </widget>
         </item>

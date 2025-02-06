@@ -14,7 +14,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 from skimage.metrics import mean_squared_error as mse
 from skimage.restoration import denoise_tv_chambolle
 from skimage.metrics import structural_similarity as ssim
@@ -37,6 +37,7 @@ class MainWindow(uiclass, baseclass):
 
         if self.flag == True:
             self.Reference = parent.Reference
+            
             self.Slice1 = parent.Slice1
             self.displayRef(self.Reference)
             
@@ -58,6 +59,8 @@ class MainWindow(uiclass, baseclass):
         self.Denoise_button2.clicked.connect(self.StackDenoising)
         self.Validate_button.clicked.connect(self.ImportCurrentStack)
         self.mouseLock.setVisible(False)
+        
+        self.ChoiceBox.currentTextChanged.connect(self.change_range) # modification of range for denoising
         
         self.x = 0
         self.y = 0
@@ -124,18 +127,37 @@ class MainWindow(uiclass, baseclass):
         self.Slice1 = self.expStack[0,:,:]
         self.Reference = np.nanmean(self.expStack[0:self.AVG_value,:,:],axis=0)
 
+    def change_range(self):
+        self.Step_choice = self.ChoiceBox.currentText()
+        
+        if self.Step_choice == 'VSNR':
+            self.Spin_first.setValue(0)
+            self.Spin_final.setValue(5)
+            self.Spin_nbr.setValue(30)
+        else :
+            self.Spin_first.setValue(0)
+            self.Spin_final.setValue(20)
+            self.Spin_nbr.setValue(30)
+
     def AutoDenoisingStep(self): # Step to determine the best denoising parameter
         self.flagsearch = 1
         
-        Spin_first_value = self.Spin_first.value()
-        Spin_final_value = self.Spin_final.value()
+        self.maxInt = np.max(self.Reference)
+        
+        if self.maxInt < 256:            
+            Spin_first_value = self.Spin_first.value()
+            Spin_final_value = self.Spin_final.value()
+        else:
+            Spin_first_value = self.Spin_first.value() * 100
+            Spin_final_value = self.Spin_final.value() * 100
+        
         Spin_nbr_value = self.Spin_nbr.value()
         
         self.sigma_range = np.round(np.linspace(Spin_first_value, Spin_final_value, Spin_nbr_value, endpoint = True),4)
         
         self.Step_choice = self.ChoiceBox.currentText()
         
-        if self.Step_choice == 'NLMD':            
+        if self.Step_choice == 'NLMD':  
             self.NLMD_approach()
             self.Compute_MSE_SSIM()
             self.drawParamProfiles()
@@ -151,7 +173,11 @@ class MainWindow(uiclass, baseclass):
             self.denSSIM = gf.BM3D(self.Slice1, self.idx_SSIM, isFast = True)
             self.denMSE = gf.BM3D(self.Slice1, self.idx_MSE, isFast = True)
             
-        elif self.Step_choice == 'VSNR':            
+        elif self.Step_choice == 'VSNR':  
+            
+            if self.maxInt > 256:
+                self.sigma_range = self.sigma_range / 100
+            
             self.VSNR_approach()
             self.Compute_MSE_SSIM()            
             self.drawParamProfiles()
@@ -184,19 +210,23 @@ class MainWindow(uiclass, baseclass):
         self.Choice_Idx.setEnabled(True)
 
     def check_type(self,data): # Check if the data has type uint8 or uint16 and modify it to float32
-        datatype = data.dtype
+        # datatype = data.dtype
 
-        if datatype == "float64":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-        if datatype == "uint16":
-            data = gf.convertToUint8(data)
-            self.data = data.astype(np.float32)
-        elif datatype == "uint8":
-            self.data = data.astype(np.float32)
-        elif datatype == "float32":
-            self.data = data
+        # if datatype == "float64":
+        #     data = gf.convertToUint8(data)
+        #     self.data = data.astype(np.float32)
+        # if datatype == "uint16":
+        #     data = gf.convertToUint8(data)
+        #     self.data = data.astype(np.float32)
+        # elif datatype == "uint8":
+        #     self.data = data.astype(np.float32)
+        # elif datatype == "float32":
+        #     self.data = data
             
+        # return self.data
+        
+        self.data = data.astype(np.float32)
+        
         return self.data
 
     def NLMD_approach(self): # Compute NLMD denoising for determination of best parameter

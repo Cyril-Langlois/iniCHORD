@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>753</width>
+    <width>692</width>
     <height>713</height>
    </rect>
   </property>
@@ -1166,6 +1166,10 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  <property name="text">
                   <string>Create ref°</string>
                  </property>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -1451,7 +1455,11 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                     <string notr="true"/>
                    </property>
                    <property name="text">
-                    <string>Search the optimal parameter</string>
+                    <string>Search parameters</string>
+                   </property>
+                   <property name="icon">
+                    <iconset>
+                     <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
                    </property>
                   </widget>
                  </item>
@@ -1571,6 +1579,10 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    <property name="text">
                     <string>Apply denoising</string>
                    </property>
+                   <property name="icon">
+                    <iconset>
+                     <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -1639,7 +1651,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>TSG_icons/Export.png</normaloff>TSG_icons/Export.png</iconset>
+            <normaloff>icons/Export.png</normaloff>icons/Export.png</iconset>
           </property>
          </widget>
         </item>
@@ -1654,7 +1666,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>753</width>
+     <width>692</width>
      <height>20</height>
     </rect>
    </property>
