@@ -428,7 +428,7 @@ class MainWindow(uiclass, baseclass):
             
         var = np.where(self.img_diameter == 0)
         
-        self.img_diameter = ((2*np.sqrt(self.img_diameter/np.pi)) + 2)
+        self.img_diameter = ((2*np.sqrt(self.img_diameter/np.pi)))
         self.img_diameter[var] = 0
         
         # Correction of labels and diameter values
@@ -482,7 +482,7 @@ class MainWindow(uiclass, baseclass):
             self.ChoiceBox.addItem(Combo_text, Combo_data)
             
             self.img_area_metric = np.copy(self.img_area)
-            self.img_area_metric = self.img_area_metric * self.pixelSize
+            self.img_area_metric = self.img_area_metric * self.pixelSize**2
             
         Combo_text = 'Overlay map-GB'
         Combo_data = self.overlay_KAD_GB
@@ -497,7 +497,7 @@ class MainWindow(uiclass, baseclass):
     def extract_value_list(self): # Extract informations       
         # Equivalent diameter data 
         self.extract_diameter = np.copy(self.d) # Area list
-        self.extract_diameter = (2*np.sqrt(self.extract_diameter/np.pi)) + 2 # Conversion in diameter
+        self.extract_diameter = (2*np.sqrt(self.extract_diameter/np.pi)) # Conversion in diameter
 
         self.filtered_diameter = np.copy(self.extract_diameter) # Copy
         var = np.where(self.filtered_diameter <= self.Filter_labelValue) # Search for filtering

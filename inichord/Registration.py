@@ -10,6 +10,7 @@ import cv2
 import largestinteriorrectangle as lir
 import scipy.ndimage as sci
 from pystackreg import StackReg
+from scipy.fft import fft2, ifft2, fftshift
 
 from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
@@ -99,10 +100,16 @@ class MainWindow(uiclass, baseclass):
         
         self.Pre_treatment_slice() # Run a pretreatment on 1/10 images
         
-        self.transfo_comboBox.setCurrentIndex(4) 
+        self.transfo_comboBox.setCurrentIndex(5) 
         self.wrapmode  = cv2.MOTION_HOMOGRAPHY
         self.textEdit.insertPlainText("\n Homographic transformation used to estim correlation.")
         self.flagTransformation = "Homography"
+        
+        'Masquer les méthodes d_alignement dans le cas du hard registration'
+        self.transfo_comboBox.currentIndexChanged.connect(self.hide_methods)
+        
+        self.XY_label.setVisible(False) # Hide at the beginning 
+        self.XY_box.setVisible(False) # Hide at the beginning 
          
         self.CC_info.setText('Estimated correlation coefficient.') # Information about the correlation coefficient between 2 images (pretreated)
         self.textEdit.setFontPointSize(10)
@@ -266,6 +273,11 @@ class MainWindow(uiclass, baseclass):
                     self.Pre_treatment_stack_output2[i,:,:] = cv2.addWeighted(np.absolute(self.grad_x), 0.5, np.absolute(self.grad_y), 0.5, 0)
             else :   
                 self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output
+                
+            # Normalisation
+            # for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
+            #     var = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
+            #     self.Pre_treatment_stack_output2[i,:,:] = var
          
             self.Pre_treatment_stack_slice = self.Pre_treatment_stack_output2[0:-1:int(len(self.Pre_treatment_stack)/5),:,:]
             self.display_Pre_treatment(self.Pre_treatment_stack_slice)
@@ -277,6 +289,7 @@ class MainWindow(uiclass, baseclass):
     
         self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
         self.progressBar.setRange(0, len(self.Pre_treatment_stack)-1) 
+        self.progressBar.setFormat("Structural features extraction... %p%")
     
         self.Pre_treatment_stack_output2 = np.copy(self.Pre_treatment_stack)
     
@@ -294,6 +307,9 @@ class MainWindow(uiclass, baseclass):
                 self.grad_y = cv2.Sobel(self.Pre_treatment_stack_output2[i,:,:],cv2.CV_32F,0,1,ksize=self.sobel_value)
             
                 self.Pre_treatment_stack_output2[i,:,:] = cv2.addWeighted(np.absolute(self.grad_x), 0.5, np.absolute(self.grad_y), 0.5, 0)
+     
+            # var = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
+            # self.Pre_treatment_stack_output2[i,:,:] = var   
      
         self.display_Pre_treatment(self.Pre_treatment_stack_output2)
         self.textEdit.insertPlainText("\n The stack is ready for registration.")
@@ -380,6 +396,20 @@ class MainWindow(uiclass, baseclass):
 
         self.CC_info.setText('Correlation coefficient: ' + self.cc)
 
+    def hide_methods(self):
+        self.choice_transfo = self.transfo_comboBox.currentText()
+        if self.choice_transfo == 'Shift X-Y':
+            self.choiceBox.setEnabled(False)
+            
+            self.XY_label.setVisible(True) 
+            self.XY_box.setVisible(True)
+            
+        else:
+            self.choiceBox.setEnabled(True)
+            
+            self.XY_label.setVisible(False) # Hide at the beginning 
+            self.XY_box.setVisible(False) # Hide at the beginning 
+
     def Choice_method(self): # Define the program that must be use to perform registration (between sequential, incremental and coregistration)
         self.choice = self.choiceBox.currentText()
         
@@ -394,6 +424,19 @@ class MainWindow(uiclass, baseclass):
     def Registration_seq_step(self): # Step to perform sequential registration
         self.choice_transfo = self.transfo_comboBox.currentText()
         self.flagTransformation = self.choice_transfo
+        
+        if self.choice_transfo == "Shift X-Y":
+            
+            self.XYSlice = int(self.XY_box.currentText())
+            
+            self.Stackette = self.split_stack_xy(self.Pre_treatment_stack_output2,self.XYSlice,self.XYSlice)
+            self.Aligned_stack = self.Shift_XY()
+            self.AlignedStack.ui.roiBtn.hide()
+            self.AlignedStack.ui.histogram.hide()
+            self.display_Aligne_treatment(self.Aligned_stack)
+            self.textEdit.insertPlainText("\n Shift X-Y registration is complete.")
+            self.Push_valid.setEnabled(True) # Validation button is enables
+            
         if self.choice_transfo == "Translation" or self.choice_transfo == "Scaled rotation" or self.choice_transfo == "Rigid body" :
             self.Aligned_stack = self.Seq_registration()
             self.AlignedStack.ui.roiBtn.hide()
@@ -401,7 +444,8 @@ class MainWindow(uiclass, baseclass):
             self.display_Aligne_treatment(self.Aligned_stack)
             self.textEdit.insertPlainText("\n Sequential registration is complete.")
             self.Push_valid.setEnabled(True) # Validation button is enables 
-        else:
+            
+        if self.choice_transfo == "Affine" or self.choice_transfo == "Homography":
             self.Aligned_stack, self.Recap_cc, self.Recap_warp = self.Seq_registration()
             self.AlignedStack.ui.roiBtn.hide()
             self.AlignedStack.ui.histogram.hide()
@@ -685,6 +729,135 @@ class MainWindow(uiclass, baseclass):
         self.Recap_cc = np.vstack(self.Recap_cc)
 
         return self.Aligned_stack, self.Recap_cc, self.Recap_warp
+
+    'Creation des stackettes (découpage du stack en ministack)'
+    def split_stack_xy(self,stack, num_splits_x, num_splits_y):
+        """
+        Découpe un stack d'images en plusieurs morceaux suivant les dimensions X et Y.
+    
+        :param stack: Tableau 3D (stack d'images) de forme (depth, height, width).
+        :param num_splits_x: Nombre de morceaux dans lesquels découper chaque image suivant l'axe X.
+        :param num_splits_y: Nombre de morceaux dans lesquels découper chaque image suivant l'axe Y.
+        :return: Liste de tableaux 3D, chaque tableau représentant un morceau du stack.
+        """
+        depth, height, width = stack.shape
+        split_size_x = width // num_splits_x
+        split_size_y = height // num_splits_y
+    
+        # Liste pour stocker les morceaux du stack
+        Stackette = []
+    
+        for i in range(num_splits_x):
+            for j in range(num_splits_y):
+                start_x = i * split_size_x
+                end_x = (i + 1) * split_size_x if i != num_splits_x - 1 else width
+                start_y = j * split_size_y
+                end_y = (j + 1) * split_size_y if j != num_splits_y - 1 else height
+    
+                stack_piece = stack[:, start_y:end_y, start_x:end_x]
+                Stackette.append(stack_piece)
+    
+        return Stackette
+
+    def Shift_XY(self):
+        # On calcul les shift (X-Y) pour chaque stackette 
+        self.textEdit.insertPlainText("\n ------------------------------------")
+        self.textEdit.insertPlainText("\n Sequential registration is running.")
+        
+        self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
+        self.progressBar.setRange(0, len(self.Stackette)-1) 
+        self.progressBar.setFormat("Mini stacks computation... %p%")
+        
+        Recap_shift = []
+        for a in range(0,len(self.Stackette)):
+            
+            QApplication.processEvents()    
+            self.ValSlice = a
+            self.progression_bar()
+        
+            Recap_MiniShift = []
+            for i in range(0,len(self.Stackette[0])): #Nbr of slices
+                
+                decalage = self.Compute_shift(self.Stackette[a][0],self.Stackette[a][i])
+                Recap_MiniShift.append(decalage)
+            
+            Recap_shift.append(Recap_MiniShift)
+        
+        self.textEdit.insertPlainText("\n Mini stacks have been computed.")
+            
+        # On regroupe les shift par stackette
+        shifts_by_slice = [[] for _ in range(self.img_number)]
+
+        for element in Recap_shift:
+            for slice_index, shift in enumerate(element):
+                shifts_by_slice[slice_index].append(shift)
+        
+        # On filtre les decalages pour ne pas considerer les outliers
+        filtered_shifts_by_slice = [self.remove_errors(shifts) for shifts in shifts_by_slice]
+
+        # On prend la moyenne des décalage
+        mean_shifts = []
+        for shifts in filtered_shifts_by_slice:
+            if shifts:  # Vérifier si la liste n'est pas vide
+                mean_shift = np.mean(shifts, axis=0)
+                mean_shifts.append(mean_shift)
+            else:
+                mean_shifts.append(np.array([np.nan, np.nan]))  # Ajouter NaN si la liste est vide
+
+        self.textEdit.insertPlainText("\n Application of matrix transformations.")
+        
+        # Maintenant on recalcule les transformations
+        self.Aligned_stack = np.copy(self.expStack)
+        for i in range(0,len(self.Aligned_stack)):
+            M_shift = np.float32([[1, 0, mean_shifts[i][1]], [0, 1, mean_shifts[i][0]]])
+            VarReg = cv2.warpAffine(self.expStack[i], M_shift, (self.Aligned_stack[0].shape[1], self.Aligned_stack[0].shape[0]))
+            self.Aligned_stack[i,:,:] = VarReg
+            
+        return self.Aligned_stack
+
+    'On calcul pour chaque stackette la liste des shifts par cross-corrélation'
+    def Compute_shift(self,image1, image2):
+        # Calculer la transformation de Fourier des deux images
+        image1 = gf.convertToUint8(image1)
+        image2 = gf.convertToUint8(image2)
+        
+        f_image1 = fft2(image1)
+        f_image2 = fft2(image2)
+    
+        # Calculer la corrélation croisée en utilisant le produit conjugué
+        produit_conjugue = f_image1 * np.conj(f_image2)
+        cross_correlation = fftshift(ifft2(produit_conjugue))
+    
+        # Trouver le pic de la corrélation croisée pour déterminer le décalage
+        decalage = np.unravel_index(np.argmax(np.abs(cross_correlation)), cross_correlation.shape)
+    
+        # Calculer le décalage relatif à partir du centre
+        centre = np.array(image1.shape) // 2
+        decalage = np.array(decalage) - centre
+    
+        return decalage
+
+    'Enlever les decalage faux parmis les stackettes'
+    def remove_errors(self,shifts):
+        # Convertir la liste de shifts en un tableau numpy
+        shifts_array = np.array(shifts)
+    
+        # Calculer les quartiles et l'IQR pour chaque dimension (X et Y)
+        Q1 = np.percentile(shifts_array, 25, axis=0)
+        Q3 = np.percentile(shifts_array, 75, axis=0)
+        IQR = Q3 - Q1
+    
+        # Définir les bornes pour les valeurs non aberrantes
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+    
+        # Filtrer les shifts pour éliminer les valeurs aberrantes
+        filtered_shifts = []
+        for shift in shifts:
+            if np.all(shift >= lower_bound) and np.all(shift <= upper_bound):
+                filtered_shifts.append(shift)
+    
+        return filtered_shifts
 
 #%% Functions : final treatment
     def Crop_data(self): # Step to crop stack
