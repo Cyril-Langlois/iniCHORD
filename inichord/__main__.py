@@ -48,6 +48,7 @@ if "cupy" in sys.modules:
     sys.path.append("F:\eCHORD\Programmation\indexGPU\indexGPU")
     sys.path.append("J:\Recherche\Projet_FIB\Programmation\indexGPU\indexGPU")
     sys.path.append("C:\\Users\\glhote1\\Desktop\\Post_doctorat\\indexGPU\\indexGPU")
+    sys.path.append("D:\\CHORD\\indexGPU\\indexGPU")
     import Indexation_GUI as Indexation_TSG
 
 class MainWindow(uiclass, baseclass):

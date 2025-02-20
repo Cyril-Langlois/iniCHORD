@@ -178,7 +178,7 @@ QGroupBox {
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_10">
            <property name="spacing">
-            <number>2</number>
+            <number>5</number>
            </property>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -705,7 +705,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_11">
              <property name="spacing">
-              <number>2</number>
+              <number>5</number>
              </property>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_6">

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>630</width>
-    <height>644</height>
+    <height>645</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -632,7 +632,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                        </widget>
                       </item>
                       <item>
-                       <widget class="QComboBox" name="transfo_comboBox_2">
+                       <widget class="QComboBox" name="transfo_comboBox">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -724,7 +724,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                        </widget>
                       </item>
                       <item>
-                       <widget class="QComboBox" name="transfo_comboBox2_2">
+                       <widget class="QComboBox" name="transfo_comboBox2">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2047,7 +2047,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
      <x>0</x>
      <y>0</y>
      <width>630</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

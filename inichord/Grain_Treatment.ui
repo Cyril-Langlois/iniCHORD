@@ -279,7 +279,7 @@ QGroupBox {
                 <number>2</number>
                </property>
                <property name="minimum">
-                <double>0.010000000000000</double>
+                <double>0.000000000000000</double>
                </property>
                <property name="maximum">
                 <double>1.000000000000000</double>
@@ -2013,7 +2013,7 @@ QGroupBox {
      <x>0</x>
      <y>0</y>
      <width>726</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

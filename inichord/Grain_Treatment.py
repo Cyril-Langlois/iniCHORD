@@ -279,7 +279,11 @@ class MainWindow(uiclass, baseclass):
 
     def CLAHE_changed(self):
         self.CLAHE_value = self.CLAHE_SpinBox.value()
-        self.CLAHE_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
+        
+        if self.CLAHE_value == 0:
+            self.CLAHE_map = np.copy(self.InitKAD_map)
+        else:
+            self.CLAHE_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
 
         # self.CLAHE_map = filters.unsharp_mask(self.CLAHE_map, radius=1, amount=1)
 
@@ -518,7 +522,7 @@ class MainWindow(uiclass, baseclass):
             self.filtered_diameter_metric = self.filtered_diameter * self.pixelSize
             
             # Area data
-            self.area_list_metric = np.copy(self.d) * self.pixelSize
+            self.area_list_metric = np.copy(self.d) * self.pixelSize**2
             self.Filtered_area_list_metric = np.copy(self.area_list_metric)
             self.Filtered_area_list_metric[var] = 0
             

@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushBut
 from PyQt5 import QtCore
 
 import General_Functions as gf
+from skimage import morphology, filters, exposure
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Registration.ui")
@@ -274,9 +275,14 @@ class MainWindow(uiclass, baseclass):
             else :   
                 self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output
                 
-            # Normalisation
+            # # Normalisation
             # for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
             #     var = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
+            #     self.Pre_treatment_stack_output2[i,:,:] = var
+            
+            # # CLAHE
+            # for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
+            #     var = exposure.equalize_adapthist(self.Pre_treatment_stack_output2[i,:,:], kernel_size=None, clip_limit=0.05, nbins=256) # CLAHE step
             #     self.Pre_treatment_stack_output2[i,:,:] = var
          
             self.Pre_treatment_stack_slice = self.Pre_treatment_stack_output2[0:-1:int(len(self.Pre_treatment_stack)/5),:,:]
@@ -289,7 +295,7 @@ class MainWindow(uiclass, baseclass):
     
         self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
         self.progressBar.setRange(0, len(self.Pre_treatment_stack)-1) 
-        self.progressBar.setFormat("Structural features extraction... %p%")
+        self.progressBar.setFormat("Features extraction... %p%")
     
         self.Pre_treatment_stack_output2 = np.copy(self.Pre_treatment_stack)
     
@@ -308,8 +314,13 @@ class MainWindow(uiclass, baseclass):
             
                 self.Pre_treatment_stack_output2[i,:,:] = cv2.addWeighted(np.absolute(self.grad_x), 0.5, np.absolute(self.grad_y), 0.5, 0)
      
+            # # Normalisation
             # var = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
             # self.Pre_treatment_stack_output2[i,:,:] = var   
+            
+            # # CLAHE
+            # var = exposure.equalize_adapthist(self.Pre_treatment_stack_output2[i,:,:], kernel_size=None, clip_limit=0.05, nbins=256) # CLAHE step
+            # self.Pre_treatment_stack_output2[i,:,:] = var
      
         self.display_Pre_treatment(self.Pre_treatment_stack_output2)
         self.textEdit.insertPlainText("\n The stack is ready for registration.")
@@ -505,6 +516,8 @@ class MainWindow(uiclass, baseclass):
         self.textEdit.insertPlainText("\n Transformation: " + str(self.flagTransformation))
         
         # Cases of Translation - Scaled rotation - Rigid body
+        self.progressBar.setFormat("Registration... %p%")   
+        
         if self.choice_transfo == "Translation":
             sr = StackReg(StackReg.TRANSLATION)
             tmat = sr.register_stack(self.Pre_treatment_stack_output2, axis=0, reference='first',  progress_callback=self.show_progress)
@@ -541,6 +554,10 @@ class MainWindow(uiclass, baseclass):
             else :
                 self.warp =  np.eye(2, 3, dtype=np.float32) # Matrice pour le stockage des transformations affines
                 self.Recap_warp = np.zeros((len(self.expStack),len(self.warp),len(self.warp[0])))
+    
+            self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
+            self.progressBar.setRange(0, len(self.Aligned_stack)-1) 
+            self.progressBar.setFormat("Registration... %p%")
     
             try :
                 for i in np.arange(0,self.img_number, 1):
@@ -595,6 +612,8 @@ class MainWindow(uiclass, baseclass):
         self.flagTransformation = self.choice_transfo
         
         # Cases of Translation - Scaled rotation - Rigid body
+        self.progressBar.setFormat("Registration... %p%")   
+        
         if self.choice_transfo == "Translation":
             sr = StackReg(StackReg.TRANSLATION)
             tmat = sr.register_stack(self.Pre_treatment_stack_output2, axis=0, reference='previous',  progress_callback=self.show_progress)
@@ -630,6 +649,10 @@ class MainWindow(uiclass, baseclass):
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
             
             self.Recap_cc = []
+    
+            self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
+            self.progressBar.setRange(0, len(self.Aligned_stack)-1) 
+            self.progressBar.setFormat("Registration... %p%")
     
             try :
                 for i in np.arange(0,self.img_number, 1):
@@ -690,6 +713,10 @@ class MainWindow(uiclass, baseclass):
         self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iter_value, self.thres_value) # Stockage des critères pour l'alignement
         
         self.Recap_cc = []
+        
+        self.progressBar.setValue(0) # Set the initial value of the Progress bar at 0
+        self.progressBar.setRange(0, len(self.Aligned_stack)-1) 
+        self.progressBar.setFormat("Registration... %p%")
         
         try :
             for i in np.arange(0,self.img_number, 1):
@@ -1029,6 +1056,6 @@ class MainWindow(uiclass, baseclass):
         self.progressBar.setValue(self.prgbar)
         
     def show_progress(self,current_iteration, end_iteration): # For Translation - Scaled rotation - Rigid body
-        QApplication.processEvents()                    
+        QApplication.processEvents()     
         self.ValSlice = current_iteration
         self.progression_bar()
