@@ -21,7 +21,7 @@ QWidget, QLabel, QComboBox, QProgressBar, QSpinBox {background-color: rgb(253, 2
 QPushButton:disabled, QComboBox:disabled, QSpinBox:disabled {background-color: rgba(243, 98, 64,150)}
 
 /* Couleur des boutons et des selecteurs */
-QPushButton, QComboBox::drop-down:button, QComboBox::down-arrow, QComboBox::down-arrow:disabled, QSpinBox::drop-down:button, QSpinBox::down-arrow, QSpinBox::down-arrow:disabled, QSpinBox::drop-up:button, QSpinBox::up-arrow, QSpinBox::up-arrow:disabled, QSlider::handle:horizontal {background-color: rgb(226, 120, 95)}
+QPushButton, QComboBox::drop-down:button, QComboBox::down-arrow, QComboBox::down-arrow:disabled, QSpinBox::drop-down:button, QSpinBox::down-arrow, QSpinBox::down-arrow:disabled, QSpinBox::drop-up:button, QSpinBox::up-arrow, QSpinBox::up-arrow:disabled, QSlider::handle:horizontal, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::down-arrow, QDoubleSpinBox::down-arrow:disabled, QDoubleSpinBox::drop-up:button, QDoubleSpinBox::up-arrow, QDoubleSpinBox::up-arrow:disabled {background-color: rgb(226, 120, 95)}
 
 /* Couleur des bordures de même couleur que les boutons */
 QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:button {border-color: rgb(193, 167, 181)}
@@ -30,13 +30,13 @@ QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:butto
 QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, Line, QTextEdit, QSpinBox {color: rgb(0, 0, 0)}
 
 /* style des bordures 1 */
-QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QLabel, QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
 	border-style : outset;
 	min-width : 5em;
 }
 
 /* style des bordures 2 */
-QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
 	border-radius: 5px;
 	border-width: 1px;
 	border-color: gray;
@@ -46,7 +46,7 @@ QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
 QPushButton, QPushButton:hover, QCheckBox, QProgressBar {font: 12pt &quot;Noto Sans Cond&quot;}
 
 /* Font 2 */
-QComboBox, QTextEdit, QSpinBox {font: 10pt &quot;Noto Sans Cond&quot;}
+QComboBox, QTextEdit, QSpinBox, QLineEdit {font: 10pt &quot;Noto Sans Cond&quot;}
 
 /* Padding 1 */
 QLabel, QComboBox, QComboBox::down-arrow, QSpinBox, QSpinBox::down-arrow, QSpinBox::up-arrow {padding : 1px;}
@@ -125,19 +125,19 @@ QProgressBar {
 	margin : 0.5px;
  }
 
-QSpinBox::drop-down:button, QSpinBox::drop-up:button {
+QSpinBox::drop-down:button, QSpinBox::drop-up:button, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::drop-up:button {
 	border-radius: 2px;
 	border-width: 1px;
 	width: 36px;
 }
 
-QSpinBox::down-arrow {
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 	image : url(icons/Arrow_down.png);
     width: 24px;
     height: 22px;
 }
 
-QSpinBox::up-arrow {
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
 	image : url(icons/Arrow_up.png);
     width: 24px;
     height: 22px;
@@ -180,6 +180,88 @@ QGroupBox {
            <property name="spacing">
             <number>5</number>
            </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <item>
+              <widget class="QLabel" name="label_CLAHE">
+               <property name="font">
+                <font>
+                 <family>Noto Sans Cond</family>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+               </property>
+               <property name="text">
+                <string>CLAHE intensity</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::PlainText</enum>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="CLAHE_SpinBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>126</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;The higher the value, the stronger the Contrast Limited Adaptative Histogram Equalization (CLAHE)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               </property>
+               <property name="decimals">
+                <number>2</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.020000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <property name="spacing">
@@ -633,7 +715,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -667,7 +749,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -876,7 +958,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>100</width>
+                     <width>79</width>
                      <height>0</height>
                     </size>
                    </property>
@@ -1960,7 +2042,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

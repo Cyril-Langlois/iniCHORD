@@ -731,8 +731,7 @@ class MainWindow(uiclass, baseclass):
             for j in range(0,len(self.Corrected_label_img[0])):
                 Labels_int[i,j] = int(self.Corrected_label_img[i,j])
 
-        # Expansion of labels ==> Get rid of grains boundaries !
-        Labels_int = expand_labels(Labels_int, distance=10)
+
 
         # Definition of the mean profiles for each label
         moyen_profil=np.zeros((len(regionprops(Labels_int)),len(serie[:,0,0])))
@@ -759,6 +758,9 @@ class MainWindow(uiclass, baseclass):
         self.liste = np.swapaxes(self.liste, 0, 1)
         
         self.Labels_int = Labels_int
+        
+        # Expansion of labels ==> Get rid of grains boundaries !
+        self.Labels_int_expand = expand_labels(Labels_int, distance=30)
 
     def Save_results(self):
         
@@ -825,7 +827,6 @@ class MainWindow(uiclass, baseclass):
         Pxls_SubPathDir = os.path.join(PathDir, Pxls_folder) # Sub-folder for filtered data
         os.mkdir(Pxls_SubPathDir)  # Create sub-folder
         
-        tf.imwrite(Pxls_SubPathDir + '/Labeled_img.tiff', np.rot90(np.flip(self.Corrected_label_img, 0), k=1, axes=(1, 0)).astype('float32')) 
         tf.imwrite(Pxls_SubPathDir + '/Area_pxls.tiff', np.rot90(np.flip(self.img_area, 0), k=1, axes=(1, 0))) # Area map in pxls
         tf.imwrite(Pxls_SubPathDir + '/Equivalent_diameter_pxls.tiff', np.rot90(np.flip(self.Corrected_img_diameter, 0), k=1, axes=(1, 0)))
         tf.imwrite(Pxls_SubPathDir + '/form_factor_map.tiff', np.rot90(np.flip(self.img_formfactor, 0), k=1, axes=(1, 0))) # Area map in pxls
@@ -850,7 +851,8 @@ class MainWindow(uiclass, baseclass):
         if self.Save_cluster.isChecked(): # If QCheckBox 'Save clustered profiles' is True, then the function is run
             self.Compute_clustered_profiles() 
             tf.imwrite(PathDir + '/Clustered_profiles.tiff', self.liste)
-            tf.imwrite(PathDir + '/Labeled_img_NoGB.tiff', np.rot90(np.flip(self.Labels_int, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(PathDir + '/Labeled_img.tiff', np.rot90(np.flip(self.Corrected_label_img, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(PathDir + '/Labeled_img_NoGB.tiff', np.rot90(np.flip(self.Labels_int_expand, 0), k=1, axes=(1, 0)).astype('float32')) 
 
         # CSV save step
         self.extract_value_list()

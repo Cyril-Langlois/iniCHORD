@@ -1,5 +1,3 @@
-
-
 import os
 from os.path import abspath
 
@@ -30,7 +28,6 @@ class MainWindow(uiclass, baseclass):
         self.setupUi(self)
         self.setWindowIcon(QtGui.QIcon('icons/alignment_icon.png'))
         
-        
         # exprimental stack is loaded from __main__ (the parent)
         # self.parent is created to use it inside the functions through "self" keyword
         self.parent = parent
@@ -40,15 +37,9 @@ class MainWindow(uiclass, baseclass):
         # Stack that will store the final result
         self.Aligned_stack = np.copy(parent.Current_stack)
         
-        
         # for the time beeing, some functions only work with 8bit unsigned type...
         # so the stacks are converted
         self.type = self.expStack.dtype
-
-        # if self.type == "uint16" or self.type == "uint32" or self.type == "float64" or self.type == "float32":
-        #     self.expStack = gf.convertToUint8(self.expStack) # Necessary for computation
-        #     self.Pre_treatment_stack = gf.convertToUint8(self.Pre_treatment_stack)
-        #     self.Aligned_stack = gf.convertToUint8(self.Pre_treatment_stack)
 
         # stack for intermediate calculations and displaying
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
@@ -62,6 +53,7 @@ class MainWindow(uiclass, baseclass):
         self.Pre_treatment_doppelstack_output2 = np.copy(self.Pre_treatment_stack)
 
         # pre-treatment parameters
+        self.CLAHE_value = self.CLAHE_SpinBox.value()
         self.blur_value = int(self.Blur_box.currentText())
         self.sobel_value = int(self.Sobel_box.currentText())
 
@@ -82,6 +74,7 @@ class MainWindow(uiclass, baseclass):
         self.Radius_slider.valueChanged.connect(self.radius_changed) # Input filtre Remout
         self.Threshold_slider.valueChanged.connect(self.threshold_changed) # Input filtre Remout
         
+        self.CLAHE_SpinBox.valueChanged.connect(self.CLAHE_changed) # Change initial filtering
         self.Blur_box.activated.connect(self.get_blur_changed) # Gaussian blur changes connexion
         self.Sobel_box.activated.connect(self.get_sobel_changed) # Sobel changes connexion
         
@@ -106,7 +99,7 @@ class MainWindow(uiclass, baseclass):
         self.textEdit.insertPlainText("\n Homographic transformation used to estim correlation.")
         self.flagTransformation = "Homography"
         
-        'Masquer les méthodes d_alignement dans le cas du hard registration'
+        'Masquer les méthodes d alignement dans le cas du hard registration'
         self.transfo_comboBox.currentIndexChanged.connect(self.hide_methods)
         
         self.XY_label.setVisible(False) # Hide at the beginning 
@@ -132,6 +125,7 @@ class MainWindow(uiclass, baseclass):
 
 #%% Functions : initialization
     def popup_message(self,title,text,icon):
+        'Pop up message for specific informations'
         msg = QDialog(self) # Create a Qdialog box
         msg.setWindowTitle(title)
         msg.setWindowIcon(QtGui.QIcon(icon))
@@ -157,7 +151,8 @@ class MainWindow(uiclass, baseclass):
         
         msg.exec_() # Display the message box
 
-    def checking(self): # Allow to define if registration must be applied to the raw stack or to the pretreated one
+    def checking(self): 
+        'Allow to define if registration must be applied to the raw stack or to the treated stack'
         if self.checkBox.isChecked() == True:
             self.checkBox.clicked.connect(self.Pre_notreatment) # Registration on the raw stack
             self.textEdit.insertPlainText("\n Registration performs on raw images.")
@@ -185,6 +180,11 @@ class MainWindow(uiclass, baseclass):
             self.flagTransformation = "Homography"
         
         return self.wrapmode
+
+    def CLAHE_changed(self):
+        self.CLAHE_value = self.CLAHE_SpinBox.value()
+        self.Coefficient_estim()
+        self.Pre_treatment_slice()
                
     def radius_changed(self): # apply remove outliers radius modification
         value = self.Radius_slider.value()
@@ -248,10 +248,11 @@ class MainWindow(uiclass, baseclass):
         self.display_Pre_treatment(self.Pre_treatment_stack_output2)
         self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output2
     
-    def Pre_treatment_slice(self): # Apply pretreatment on 1/10 slices at the opening of the sub-gui
+    def Pre_treatment_slice(self): # Apply pretreatment on 1/5 slices at the opening of the sub-gui
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
-        
+        self.Pre_treatment_stack_output3 = np.zeros((len(self.Pre_treatment_stack_output),len(self.Pre_treatment_stack_output[0]),len(self.Pre_treatment_stack_output[0][0])))
+
         if len(self.Pre_treatment_stack_Remout) < 5:
             self.popup_message("Registration","A minimum of 5 images is needed for registration. Please, considerer more images",'icons/Main_icon.png')
             return
@@ -275,17 +276,17 @@ class MainWindow(uiclass, baseclass):
             else :   
                 self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output
                 
-            # # Normalisation
-            # for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
-            #     var = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
-            #     self.Pre_treatment_stack_output2[i,:,:] = var
+            # Normalisation & CLAHE
+            if self.CLAHE_value != 0 :
+                for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
+                    var_norm = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
+                    var_CLAHE = exposure.equalize_adapthist(var_norm, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
             
-            # # CLAHE
-            # for i in range(0,int(len(self.Pre_treatment_stack)),int(len(self.Pre_treatment_stack)/5)): # Applique pour chaque slice les paramètres du remove outlier
-            #     var = exposure.equalize_adapthist(self.Pre_treatment_stack_output2[i,:,:], kernel_size=None, clip_limit=0.05, nbins=256) # CLAHE step
-            #     self.Pre_treatment_stack_output2[i,:,:] = var
-         
-            self.Pre_treatment_stack_slice = self.Pre_treatment_stack_output2[0:-1:int(len(self.Pre_treatment_stack)/5),:,:]
+                    self.Pre_treatment_stack_output3[i,:,:] = var_CLAHE  
+            else :
+                self.Pre_treatment_stack_output3 = np.copy(self.Pre_treatment_stack_output2)
+            
+            self.Pre_treatment_stack_slice = self.Pre_treatment_stack_output3[0:-1:int(len(self.Pre_treatment_stack)/5),:,:]
             self.display_Pre_treatment(self.Pre_treatment_stack_slice)
         
     def Pre_treatment(self): # Apply pretreatment on the entire stack
@@ -297,30 +298,32 @@ class MainWindow(uiclass, baseclass):
         self.progressBar.setRange(0, len(self.Pre_treatment_stack)-1) 
         self.progressBar.setFormat("Features extraction... %p%")
     
-        self.Pre_treatment_stack_output2 = np.copy(self.Pre_treatment_stack)
-    
+        self.Pre_treatment_stack_output1 = np.copy(self.Pre_treatment_stack)
+        self.Pre_treatment_stack_output2 = np.zeros((len(self.Pre_treatment_stack_output1),len(self.Pre_treatment_stack_output1[0]),len(self.Pre_treatment_stack_output1[0][0])))
+
         for i in range(0,len(self.Pre_treatment_stack[:, 0, 0])): # Applique pour chaque slice les paramètres du remove outlier
         
             QApplication.processEvents()    
             self.ValSlice = i
             self.progression_bar()
         
-            _, self.Pre_treatment_stack_output2[i, :, :] =  gf.remove_outliers(self.Pre_treatment_stack[i,:,:], self.radius_Val, self.threshold_Val)
+            _, self.Pre_treatment_stack_output1[i, :, :] =  gf.remove_outliers(self.Pre_treatment_stack[i,:,:], self.radius_Val, self.threshold_Val)
             if self.blur_value != 0 :
-                self.Pre_treatment_stack_output2[i,:,:] =cv2.GaussianBlur(self.Pre_treatment_stack_output2[i,:,:],(self.blur_value,self.blur_value),0)
+                self.Pre_treatment_stack_output1[i,:,:] =cv2.GaussianBlur(self.Pre_treatment_stack_output1[i,:,:],(self.blur_value,self.blur_value),0)
             if self.sobel_value != 0 :
-                self.grad_x = cv2.Sobel(self.Pre_treatment_stack_output2[i,:,:],cv2.CV_32F,1,0,ksize=self.sobel_value)
-                self.grad_y = cv2.Sobel(self.Pre_treatment_stack_output2[i,:,:],cv2.CV_32F,0,1,ksize=self.sobel_value)
+                self.grad_x = cv2.Sobel(self.Pre_treatment_stack_output1[i,:,:],cv2.CV_32F,1,0,ksize=self.sobel_value)
+                self.grad_y = cv2.Sobel(self.Pre_treatment_stack_output1[i,:,:],cv2.CV_32F,0,1,ksize=self.sobel_value)
             
-                self.Pre_treatment_stack_output2[i,:,:] = cv2.addWeighted(np.absolute(self.grad_x), 0.5, np.absolute(self.grad_y), 0.5, 0)
+                self.Pre_treatment_stack_output1[i,:,:] = cv2.addWeighted(np.absolute(self.grad_x), 0.5, np.absolute(self.grad_y), 0.5, 0)
      
-            # # Normalisation
-            # var = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
-            # self.Pre_treatment_stack_output2[i,:,:] = var   
+            # Normalisation & CLAHE
+            if self.CLAHE_value != 0 :
+                var_norm = (self.Pre_treatment_stack_output1[i,:,:] - np.min(self.Pre_treatment_stack_output1[i,:,:])) / (np.max(self.Pre_treatment_stack_output1[i,:,:]) - np.min(self.Pre_treatment_stack_output1[i,:,:])) # Normalization step
+                var_CLAHE = exposure.equalize_adapthist(var_norm, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
             
-            # # CLAHE
-            # var = exposure.equalize_adapthist(self.Pre_treatment_stack_output2[i,:,:], kernel_size=None, clip_limit=0.05, nbins=256) # CLAHE step
-            # self.Pre_treatment_stack_output2[i,:,:] = var
+                self.Pre_treatment_stack_output2[i,:,:] = var_CLAHE
+            else :
+                self.Pre_treatment_stack_output2[i,:,:] = self.Pre_treatment_stack_output1[i,:,:]
      
         self.display_Pre_treatment(self.Pre_treatment_stack_output2)
         self.textEdit.insertPlainText("\n The stack is ready for registration.")
@@ -356,10 +359,10 @@ class MainWindow(uiclass, baseclass):
         else :   
             self.Pre_treatment_doppelstack_output2 = self.Pre_treatment_doppelstack
             
-
     def Coefficient_estim(self): # Estim corrcoeff between the two first image (using pretreated slices and homography)
         self.Pre_treatment_stack_output = np.copy(self.Pre_treatment_stack)
         self.Pre_treatment_stack_Remout = np.copy(self.Pre_treatment_stack)
+        self.Pre_treatment_stack_output3 = np.zeros((len(self.Pre_treatment_stack_output),len(self.Pre_treatment_stack_output[0]),len(self.Pre_treatment_stack_output[0][0])))
         
         for i in range(0,2): # Applique pour chaque slice les paramètres du remove outlier
             _, self.Pre_treatment_stack_Remout[i, :, :] =  gf.remove_outliers(self.Pre_treatment_stack[i,:,:], self.radius_Val, self.threshold_Val)
@@ -379,6 +382,16 @@ class MainWindow(uiclass, baseclass):
         else :   
             self.Pre_treatment_stack_output2 = self.Pre_treatment_stack_output
              
+        # Normalisation & CLAHE
+        if self.CLAHE_value != 0 :
+            for i in range(0,2): # Applique pour chaque slice les paramètres du remove outlier
+                var_norm = (self.Pre_treatment_stack_output2[i,:,:] - np.min(self.Pre_treatment_stack_output2[i,:,:])) / (np.max(self.Pre_treatment_stack_output2[i,:,:]) - np.min(self.Pre_treatment_stack_output2[i,:,:])) # Normalization step
+                var_CLAHE = exposure.equalize_adapthist(var_norm, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
+        
+                self.Pre_treatment_stack_output3[i,:,:] = var_CLAHE  
+        else :
+            self.Pre_treatment_stack_output3 = np.copy(self.Pre_treatment_stack_output2)
+            
         self.warp_mode = self.wrapmode
         if self.warp_mode  == cv2.MOTION_HOMOGRAPHY:
             self.warp =  np.eye(3, 3, dtype=np.float32) # Matrice pour le stockage des transformations homographiques
@@ -397,7 +410,7 @@ class MainWindow(uiclass, baseclass):
 
         try :   
             #self.cc, self.warp = cv2.findTransformECC(self.im1, self.im2, self.warp, self.warp_mode, self.criteria)
-            self.ccAndTransformECC(self.Pre_treatment_stack_output2[self.im_reference,:,:], self.Pre_treatment_stack_output2[self.im_reference + 1,:,:])
+            self.ccAndTransformECC(self.Pre_treatment_stack_output3[self.im_reference,:,:], self.Pre_treatment_stack_output3[self.im_reference + 1,:,:])
             self.cc = '%.3f'%(self.cc)
             # print(f"self.cc = {self.cc}")
         except :
