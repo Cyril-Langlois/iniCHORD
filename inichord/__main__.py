@@ -49,7 +49,9 @@ if "cupy" in sys.modules:
     sys.path.append("J:\Recherche\Projet_FIB\Programmation\indexGPU\indexGPU")
     sys.path.append("C:\\Users\\glhote1\\Desktop\\Post_doctorat\\indexGPU\\indexGPU")
     sys.path.append("D:\\CHORD\\indexGPU\\indexGPU")
-    import Indexation_GUI as Indexation_TSG
+    from Indexation_GUI import MainView
+    from data_classes import Model
+    from coreCalc import Controller
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -143,8 +145,13 @@ class MainWindow(uiclass, baseclass):
 #%% Functions
     try:
         def Indexation_orientation(self): # Run the indexing sub-gui
-            self.w = Indexation_TSG.MainWindow(self)
+            # self.w = Indexation_TSG.MainWindow(self)
+            # self.w.show()
+            self.model = Model()
+            self.w = MainView(self)
+            self.controller = Controller(self.model, self.w)
             self.w.show()
+            
     except:
         pass
     
