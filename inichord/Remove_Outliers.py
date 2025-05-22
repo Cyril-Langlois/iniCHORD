@@ -14,7 +14,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Remove_Outliers.ui")
@@ -29,6 +29,15 @@ class MainWindow(uiclass, baseclass):
                 
         self.expStack = parent.Current_stack
         self.denoised_Stack = np.copy(parent.Current_stack)
+        
+        self.maxInt = np.max(self.expStack)
+        
+        if self.maxInt < 256:
+            self.slider_threshold.setMinimum(0)
+            self.slider_threshold.setMaximum(150)
+        else:
+            self.slider_threshold.setMinimum(0)
+            self.slider_threshold.setMaximum(int(np.round(0.6 * self.maxInt)))
         
         self.x = 0
         self.y = 0
@@ -89,7 +98,11 @@ class MainWindow(uiclass, baseclass):
         self.remOutSlice()
     
     def threshold_changed(self):
+        # if self.maxInt < 256:
         self.threshold = self.slider_threshold.value()
+        # else:
+        #     self.threshold = self.slider_threshold.value() * 10
+
         self.label_threshold.setText("Threshold: " + str(self.threshold))
         self.remOutSlice()
     

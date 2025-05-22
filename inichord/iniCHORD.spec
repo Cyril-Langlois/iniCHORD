@@ -1,7 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_dynamic_libs
 from PyInstaller.utils.hooks import collect_all
-from PyInstaller.utils.hooks import collect_submodules
 
 datas = [('__main__.ui', '.'), ('icons', 'icons')]
 binaries = []
@@ -9,7 +8,7 @@ hiddenimports = []
 binaries += collect_dynamic_libs('bm4d')
 tmp_ret = collect_all('inichord')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-hiddenimports += collect_submodules("numba")
+
 
 a = Analysis(
     ['__main__.py'],

@@ -187,18 +187,31 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>112</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="font">
                 <font>
                  <family>Noto Sans Cond</family>
-                 <pointsize>14</pointsize>
+                 <pointsize>12</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
                </property>
                <property name="text">
                 <string>Stack info</string>
@@ -249,18 +262,31 @@ QGroupBox {
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>112</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="font">
                 <font>
                  <family>Noto Sans Cond</family>
-                 <pointsize>14</pointsize>
+                 <pointsize>12</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
                </property>
                <property name="text">
                 <string>ROI info</string>
@@ -315,11 +341,24 @@ QGroupBox {
                <property name="font">
                 <font>
                  <family>Noto Sans Cond</family>
-                 <pointsize>14</pointsize>
+                 <pointsize>12</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
                  <bold>false</bold>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
                </property>
                <property name="text">
                 <string>Position</string>
@@ -714,7 +753,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+                 <normaloff>icons/filter_icon.png</normaloff>icons/filter_icon.png</iconset>
                </property>
               </widget>
              </item>
@@ -737,7 +776,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+                 <normaloff>icons/filter_icon.png</normaloff>icons/filter_icon.png</iconset>
                </property>
               </widget>
              </item>
@@ -751,7 +790,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>../Traitement_stack/icons/run_icon.png</normaloff>../Traitement_stack/icons/run_icon.png</iconset>
+                 <normaloff>icons/filter_icon.png</normaloff>icons/filter_icon.png</iconset>
                </property>
               </widget>
              </item>
@@ -888,7 +927,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>TSG_icons/Export.png</normaloff>TSG_icons/Export.png</iconset>
+            <normaloff>icons/Export.png</normaloff>icons/Export.png</iconset>
           </property>
          </widget>
         </item>

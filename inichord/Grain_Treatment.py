@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushBut
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 from skimage import morphology, filters, exposure
 from skimage.measure import label, regionprops
@@ -92,6 +92,7 @@ class MainWindow(uiclass, baseclass):
         
         self.PresetBox.currentTextChanged.connect(self.auto_set) # Allow different pre-set to be used for computation
         self.spinBox_filter.valueChanged.connect(self.Filter_changed) # Change initial filtering
+        self.CLAHE_SpinBox.valueChanged.connect(self.CLAHE_changed) # Change initial filtering
         self.Den_spinbox.valueChanged.connect(self.denoise_labels) # Change denoising value of the labels
         self.Filter_labelBox.valueChanged.connect(self.Filter_labels) # To exclude small grains
         self.ChoiceBox.currentTextChanged.connect(self.ViewLabeling) # Change displayed map
@@ -202,7 +203,7 @@ class MainWindow(uiclass, baseclass):
         
         self.InitKAD_map = np.nan_to_num(self.InitKAD_map) # Exclude NaN value if needed
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
-        self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
+        # self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.07, nbins=256) # CLAHE step
     
         self.displayExpKAD(self.InitKAD_map) # Display of the map
         
@@ -215,7 +216,7 @@ class MainWindow(uiclass, baseclass):
     def run_init_computation(self): # Run a first analysis automatically
         self.InitKAD_map = np.nan_to_num(self.InitKAD_map) # Exclude NaN value if needed
         self.InitKAD_map = (self.InitKAD_map - np.min(self.InitKAD_map)) / (np.max(self.InitKAD_map) - np.min(self.InitKAD_map)) # Normalization step
-        self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.01, nbins=256) # CLAHE step
+        # self.InitKAD_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=0.07, nbins=256) # CLAHE step
         
         self.displayExpKAD(self.InitKAD_map) # Display of the map
         
@@ -226,6 +227,8 @@ class MainWindow(uiclass, baseclass):
             self.high_auto_set()
 
     def auto_set(self): # Allow different pre-set to be used
+        self.CLAHE_changed()  
+    
         self.Preset_choice = self.PresetBox.currentText()
 
         if self.Preset_choice == "Undeformed sample":
@@ -265,6 +268,7 @@ class MainWindow(uiclass, baseclass):
             self.ClassBox.setValue(3)
             self.ThresholdBox.setValue(1)
 
+            self.CLAHE_changed()  
             self.Filter_changed() # Compute the filtered map
             self.Otsu1() # Compute a first Otsu map
             self.Binary_1() # Compute a first binary map
@@ -273,14 +277,26 @@ class MainWindow(uiclass, baseclass):
         self.pixelSize = float(self.PixelSize_edit.text())
         self.flag_PixelSize = True # Consideration of pixel size
 
+    def CLAHE_changed(self):
+        self.CLAHE_value = self.CLAHE_SpinBox.value()
+        
+        if self.CLAHE_value == 0:
+            self.CLAHE_map = np.copy(self.InitKAD_map)
+        else:
+            self.CLAHE_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
+
+        # self.CLAHE_map = filters.unsharp_mask(self.CLAHE_map, radius=1, amount=1)
+
+        self.displayFilteredKAD(self.CLAHE_map) # Display the map after load
+
     def Filter_changed(self): # KAD filtering processes
         self.Filter_choice = self.FilterBox.currentText()
         
-        if self.Filter_choice == "Butterworth (HP) filter":
+        if self.Filter_choice == "Butterworth":
             self.spinBox_filter.setRange(0.001,0.1)
             self.spinBox_filter.setSingleStep(0.001)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.butterworth(self.FilteredKAD_map,self.Filter_value,True,8)
             
@@ -288,14 +304,14 @@ class MainWindow(uiclass, baseclass):
             self.spinBox_filter.setRange(0,10)
             self.spinBox_filter.setSingleStep(1)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.gaussian(self.FilteredKAD_map, self.Filter_value)
             
         elif self.Filter_choice == "Top-hat":
             self.spinBox_filter.setRange(1,20)
             self.spinBox_filter.setSingleStep(1)
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             footprint = morphology.disk(self.Filter_value)
             self.FilteredKAD_map = morphology.white_tophat(self.FilteredKAD_map, footprint)
@@ -416,7 +432,7 @@ class MainWindow(uiclass, baseclass):
             
         var = np.where(self.img_diameter == 0)
         
-        self.img_diameter = ((2*np.sqrt(self.img_diameter/np.pi)) + 2)
+        self.img_diameter = ((2*np.sqrt(self.img_diameter/np.pi)))
         self.img_diameter[var] = 0
         
         # Correction of labels and diameter values
@@ -470,7 +486,7 @@ class MainWindow(uiclass, baseclass):
             self.ChoiceBox.addItem(Combo_text, Combo_data)
             
             self.img_area_metric = np.copy(self.img_area)
-            self.img_area_metric = self.img_area_metric * self.pixelSize
+            self.img_area_metric = self.img_area_metric * self.pixelSize**2
             
         Combo_text = 'Overlay map-GB'
         Combo_data = self.overlay_KAD_GB
@@ -485,7 +501,7 @@ class MainWindow(uiclass, baseclass):
     def extract_value_list(self): # Extract informations       
         # Equivalent diameter data 
         self.extract_diameter = np.copy(self.d) # Area list
-        self.extract_diameter = (2*np.sqrt(self.extract_diameter/np.pi)) + 2 # Conversion in diameter
+        self.extract_diameter = (2*np.sqrt(self.extract_diameter/np.pi)) # Conversion in diameter
 
         self.filtered_diameter = np.copy(self.extract_diameter) # Copy
         var = np.where(self.filtered_diameter <= self.Filter_labelValue) # Search for filtering
@@ -506,7 +522,7 @@ class MainWindow(uiclass, baseclass):
             self.filtered_diameter_metric = self.filtered_diameter * self.pixelSize
             
             # Area data
-            self.area_list_metric = np.copy(self.d) * self.pixelSize
+            self.area_list_metric = np.copy(self.d) * self.pixelSize**2
             self.Filtered_area_list_metric = np.copy(self.area_list_metric)
             self.Filtered_area_list_metric[var] = 0
             
@@ -715,8 +731,7 @@ class MainWindow(uiclass, baseclass):
             for j in range(0,len(self.Corrected_label_img[0])):
                 Labels_int[i,j] = int(self.Corrected_label_img[i,j])
 
-        # Expansion of labels ==> Get rid of grains boundaries !
-        Labels_int = expand_labels(Labels_int, distance=10)
+
 
         # Definition of the mean profiles for each label
         moyen_profil=np.zeros((len(regionprops(Labels_int)),len(serie[:,0,0])))
@@ -743,6 +758,9 @@ class MainWindow(uiclass, baseclass):
         self.liste = np.swapaxes(self.liste, 0, 1)
         
         self.Labels_int = Labels_int
+        
+        # Expansion of labels ==> Get rid of grains boundaries !
+        self.Labels_int_expand = expand_labels(Labels_int, distance=30)
 
     def Save_results(self):
         
@@ -809,7 +827,6 @@ class MainWindow(uiclass, baseclass):
         Pxls_SubPathDir = os.path.join(PathDir, Pxls_folder) # Sub-folder for filtered data
         os.mkdir(Pxls_SubPathDir)  # Create sub-folder
         
-        tf.imwrite(Pxls_SubPathDir + '/Labeled_img.tiff', np.rot90(np.flip(self.Corrected_label_img, 0), k=1, axes=(1, 0)).astype('float32')) 
         tf.imwrite(Pxls_SubPathDir + '/Area_pxls.tiff', np.rot90(np.flip(self.img_area, 0), k=1, axes=(1, 0))) # Area map in pxls
         tf.imwrite(Pxls_SubPathDir + '/Equivalent_diameter_pxls.tiff', np.rot90(np.flip(self.Corrected_img_diameter, 0), k=1, axes=(1, 0)))
         tf.imwrite(Pxls_SubPathDir + '/form_factor_map.tiff', np.rot90(np.flip(self.img_formfactor, 0), k=1, axes=(1, 0))) # Area map in pxls
@@ -834,7 +851,8 @@ class MainWindow(uiclass, baseclass):
         if self.Save_cluster.isChecked(): # If QCheckBox 'Save clustered profiles' is True, then the function is run
             self.Compute_clustered_profiles() 
             tf.imwrite(PathDir + '/Clustered_profiles.tiff', self.liste)
-            tf.imwrite(PathDir + '/Labeled_img_NoGB.tiff', np.rot90(np.flip(self.Labels_int, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(PathDir + '/Labeled_img.tiff', np.rot90(np.flip(self.Corrected_label_img, 0), k=1, axes=(1, 0)).astype('float32')) 
+            tf.imwrite(PathDir + '/Labeled_img_NoGB.tiff', np.rot90(np.flip(self.Labels_int_expand, 0), k=1, axes=(1, 0)).astype('float32')) 
 
         # CSV save step
         self.extract_value_list()
@@ -859,8 +877,8 @@ class MainWindow(uiclass, baseclass):
         self.popup_message("Grain boundaries","Saving process is over.",'icons/Grain_Icons.png')
 
     def validate_data(self): # Push labeled image in the main GUI
-        self.parent.Label_image = np.copy(self.Corrected_label_img) # Copy in the main GUI
-        self.parent.StackList.append(self.Corrected_label_img) # Add the data in the stack list
+        self.parent.Label_image = np.copy(self.Corrected_label_img.astype('float32')) # Copy in the main GUI
+        self.parent.StackList.append(self.Corrected_label_img.astype('float32')) # Add the data in the stack list
         
         Combo_text = '\u2022 Grain labeling'
         Combo_data = self.Corrected_label_img
@@ -1071,22 +1089,42 @@ class MainWindow(uiclass, baseclass):
         pos = e[0]
         
         self.mouseLock.toggle()
-        
-        fromPosX = pos.scenePos()[0]
-        fromPosY = pos.scenePos()[1]
-        
-        posQpoint = QtCore.QPointF()
-        posQpoint.setX(fromPosX)
-        posQpoint.setY(fromPosY)
-
-        if self.KADSeries.view.sceneBoundingRect().contains(posQpoint):
-                
-            item = self.KADSeries.view
-            mousePoint = item.mapSceneToView(posQpoint) 
-
+        sender = self.sender()
+    
+        if self.KADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.FiltKADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.Otsu1Series.view.sceneBoundingRect().contains(pos)\
+            or self.Binary1Series.view.sceneBoundingRect().contains(pos)\
+            or self.LabelsSeries.view.sceneBoundingRect().contains(pos):    
+            
+            if sender == self.proxy1:
+                item = self.KADSeries.view
+            elif sender == self.proxy3:
+                item = self.FiltKADSeries.view
+            elif sender == self.proxy5:
+                item = self.Otsu1Series.view
+            elif sender == self.proxy7:
+                item = self.Binary1Series.view
+            else:
+                item = self.LabelsSeries.view
+            
+            mousePoint = item.mapSceneToView(pos) 
+                 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
-                 
+            
+            self.crosshair_v2.setPos(mousePoint.x())
+            self.crosshair_h2.setPos(mousePoint.y())
+            
+            self.crosshair_v3.setPos(mousePoint.x())
+            self.crosshair_h3.setPos(mousePoint.y())
+            
+            self.crosshair_v4.setPos(mousePoint.x())
+            self.crosshair_h4.setPos(mousePoint.y())
+            
+            self.crosshair_v5.setPos(mousePoint.x())
+            self.crosshair_h5.setPos(mousePoint.y())
+
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())
             

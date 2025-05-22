@@ -17,7 +17,7 @@ import time
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 from skimage import morphology, filters, exposure
 from scipy import ndimage as ndi
@@ -85,6 +85,7 @@ class MainWindow(uiclass, baseclass):
         self.Threshold_bttn_2.clicked.connect(self.Binary_2) # Computation of the Otsu 2 thresholding
         self.Save_bttn.clicked.connect(self.Save_results) # To change the displayed maps
         self.Full_Run_bttn.clicked.connect(self.FullRun) # Run all parameters as defined
+        self.CLAHE_SpinBox.valueChanged.connect(self.CLAHE_changed) # Change initial filtering
         
         self.PresetBox.currentTextChanged.connect(self.auto_set) # Run the defined autoset 
         self.spinBox_filter.valueChanged.connect(self.Filter_changed) # Apply filter modification 
@@ -93,6 +94,7 @@ class MainWindow(uiclass, baseclass):
         
         self.defaultIV() # Hide the PlotWidget until a data has been loaded
         self.mouseLock.setVisible(False)
+        self.Full_Run_bttn.setVisible(False)
         
         try:
             if hasattr(parent, 'KAD') : # Choice of KAD if only available
@@ -210,6 +212,7 @@ class MainWindow(uiclass, baseclass):
 
     def auto_set(self):
         self.Preset_choice = self.PresetBox.currentText()
+        self.CLAHE_changed()  
         
         if self.Preset_choice == "Default":
             self.spinBox_filter.setValue(1) # Filter value
@@ -276,6 +279,14 @@ class MainWindow(uiclass, baseclass):
             self.Otsu2() # Compute the second Otsu
             self.Binary_2() # Compute the final thresholding
 
+    def CLAHE_changed(self):
+        self.CLAHE_value = self.CLAHE_SpinBox.value()
+        self.CLAHE_map = exposure.equalize_adapthist(self.InitKAD_map, kernel_size=None, clip_limit=self.CLAHE_value, nbins=256) # CLAHE step
+
+        # self.CLAHE_map = filters.unsharp_mask(self.CLAHE_map, radius=1, amount=1)
+
+        self.displayFilteredKAD(self.CLAHE_map) # Display the map after load
+
     def Filter_changed(self): # Allow the modification of the map with different filtering and values
         self.Filter_choice = self.FilterBox.currentText()
         
@@ -283,7 +294,7 @@ class MainWindow(uiclass, baseclass):
             self.spinBox_filter.setRange(0,10)
             self.spinBox_filter.setSingleStep(1)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = int(self.spinBox_filter.value())
             self.FilteredKAD_map = filters.gaussian(self.FilteredKAD_map, self.Filter_value)
         
@@ -291,7 +302,7 @@ class MainWindow(uiclass, baseclass):
             self.spinBox_filter.setRange(0.1,0.5)
             self.spinBox_filter.setSingleStep(0.1)
             
-            self.FilteredKAD_map = np.copy(self.InitKAD_map)
+            self.FilteredKAD_map = np.copy(self.CLAHE_map)
             self.Filter_value = self.spinBox_filter.value()
             self.FilteredKAD_map = filters.butterworth(self.FilteredKAD_map,self.Filter_value,False,8)
             
@@ -345,10 +356,13 @@ class MainWindow(uiclass, baseclass):
         self.regions2[var_up] = 1 # Replace values by 1 ==> Binary image created
         self.regions2[var_down] = 0 # Replace values by 1 ==> Binary image created
 
-        self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
-        self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
+        # self.regions3 = ndi.binary_closing(self.regions2) # Closing step 
+        # self.region2 = ndi.binary_fill_holes(self.regions2).astype("bool")
+        # self.binary_regions = 1-(ndi.binary_dilation(self.regions3, iterations = 1)) # Dilation to increase connectivity
 
-        self.binary_regions = ndi.binary_opening(self.binary_regions, iterations = 2) # Opening for better result
+        # self.binary_regions = ndi.binary_opening(self.binary_regions, iterations = 2) # Opening for better result
+        self.binary_regions = np.copy(1-self.regions2)
+        self.binary_regions = ndi.binary_fill_holes(self.binary_regions).astype("bool")
 
         self.displayBinary1(self.binary_regions) # Display the thresholded map
 
@@ -401,13 +415,13 @@ class MainWindow(uiclass, baseclass):
       
         self.restored_grains = np.zeros((len(self.binary_regions2),len(self.binary_regions2[0])))
         self.restored_grains[var] = self.Binary2_Value + 5
-        self.restored_grains = ndi.binary_fill_holes(self.restored_grains).astype("bool") # Fill holes processing # Restored grain 
+        # self.restored_grains = ndi.binary_fill_holes(self.restored_grains).astype("bool") # Fill holes processing # Restored grain 
 
-        var = np.where(self.restored_grains == True) # Every pixel with value > Binary2_Value is considerered
+        var = np.where(self.restored_grains == self.Binary2_Value + 5) # Every pixel with value > Binary2_Value is considerered
         self.binary_regions2[var] = self.Binary2_Value + 5
         
         # Creation of the overlay map: map and restored pixels location
-        var = np.where(self.restored_grains == True)
+        var = np.where(self.restored_grains == self.Binary2_Value + 5)
         self.overlay_KAD_restored = np.copy(self.InitKAD_map)
         self.overlay_KAD_restored[var] = 1   
         
@@ -426,16 +440,26 @@ class MainWindow(uiclass, baseclass):
         Combo_data = self.overlay_KAD_restored
         self.ChoiceBox.addItem(Combo_text, Combo_data)
         
+        # Compute for the error estimation
+        self.restored_grains_lower = np.zeros((len(self.binary_regions2),len(self.binary_regions2[0])))
+        self.restored_grains_upper = np.zeros((len(self.binary_regions2),len(self.binary_regions2[0])))
+
+        var = np.where(self.binary_regions2 > self.Binary2_Value + 1) # Every pixel with value > Binary2_Value is considerered
+        self.restored_grains_lower[var] = self.Binary2_Value + 5
+        
+        var = np.where(self.binary_regions2 > self.Binary2_Value - 1) # Every pixel with value > Binary2_Value is considerered
+        self.restored_grains_upper[var] = self.Binary2_Value + 5
+        
         # Run the restored fraction computation
         self.Compute_restoredFrac()
         
     def Compute_restoredFrac(self):       
-        Dilate = morphology.binary_dilation(self.restored_grains) # Apply a binary dilatation of the pixels
-        Erode = morphology.binary_erosion(self.restored_grains) # Apply a binary dilatation of the pixels
+        fraction_base = (np.sum(self.restored_grains == self.Binary2_Value + 5)/self.restored_grains.size)*100 # Computation the restored fraction
+        fraction_lowerbound = (np.sum(self.restored_grains_lower == self.Binary2_Value + 5)/self.restored_grains.size)*100 # Computation the restored fraction
+        fraction_upperbound = (np.sum(self.restored_grains_upper == self.Binary2_Value + 5)/self.restored_grains.size)*100 # Computation the restored fraction
 
-        fraction_base = (np.sum(self.restored_grains == True)/self.restored_grains.size)*100 # Computation the restored fraction
-        fraction_lowerbound = (np.sum(Erode == True)/Erode.size)*100
-        fraction_upperbound = (np.sum(Dilate == True)/Dilate.size)*100
+        # fraction_lowerbound = (np.sum(Erode == True)/Erode.size)*100
+        # fraction_upperbound = (np.sum(Dilate == True)/Dilate.size)*100
 
         var = [fraction_base,fraction_lowerbound,fraction_upperbound]
         self.fraction_mean = np.round(np.mean(var),2)
@@ -505,6 +529,8 @@ class MainWindow(uiclass, baseclass):
                 file.write("\nKmean n°2 class: "+ str(self.Otsu2_Value) + "\nThresholded n°2 classes (keep values higher than): " + str(self.Binary2_Value))     
 
             file.write("\nRestored fraction: "+ str(self.fraction_mean) + ' \u00B1 ' + str(self.fraction_std) + ' % ')
+            file.write("\nX dimension (pixel): "+ str(len(self.InitKAD_map)))
+            file.write("\nY dimension (pixel): "+ str(len(self.InitKAD_map[0])))
 
         self.popup_message("Restored grain","Saving process is over.",'icons/Restored_Icons.png')
 
@@ -729,30 +755,59 @@ class MainWindow(uiclass, baseclass):
                 self.crosshair_v6.setPos(mousePoint.x())
                 self.crosshair_h6.setPos(mousePoint.y())
 
-            self.x = int(mousePoint.x())
-            self.y = int(mousePoint.y())
-            
-            self.printClick(self.x, self.y, sender)
+            try:
+                self.x = int(mousePoint.x())
+                self.y = int(mousePoint.y())
+                
+                self.printClick(self.x, self.y, sender)
+            except:
+                pass
     
     def mouseClick(self, e):
         pos = e[0]
         
         self.mouseLock.toggle()
-        
-        fromPosX = pos.scenePos()[0]
-        fromPosY = pos.scenePos()[1]
-        
-        posQpoint = QtCore.QPointF()
-        posQpoint.setX(fromPosX)
-        posQpoint.setY(fromPosY)
+        sender = self.sender()
 
-        if self.KADSeries.view.sceneBoundingRect().contains(posQpoint):
-                
-            item = self.KADSeries.view
-            mousePoint = item.mapSceneToView(posQpoint) 
-
+        if self.KADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.FiltKADSeries.view.sceneBoundingRect().contains(pos)\
+            or self.Otsu1Series.view.sceneBoundingRect().contains(pos)\
+            or self.Binary1Series.view.sceneBoundingRect().contains(pos)\
+            or self.Otsu2Series.view.sceneBoundingRect().contains(pos)\
+            or self.Binary2Series.view.sceneBoundingRect().contains(pos):   
+            
+            if sender == self.proxy1:
+                item = self.KADSeries.view
+            elif sender == self.proxy3:
+                item = self.FiltKADSeries.view
+            elif sender == self.proxy5:
+                item = self.Otsu1Series.view
+            elif sender == self.proxy7:
+                item = self.Binary1Series.view
+            elif sender == self.proxy9:
+                item = self.Otsu2Series.view
+            else:
+                item = self.Binary2Series.view
+            
+            mousePoint = item.mapSceneToView(pos) 
+                 
             self.crosshair_v1.setPos(mousePoint.x())
             self.crosshair_h1.setPos(mousePoint.y())
+            
+            self.crosshair_v2.setPos(mousePoint.x())
+            self.crosshair_h2.setPos(mousePoint.y())
+            
+            self.crosshair_v3.setPos(mousePoint.x())
+            self.crosshair_h3.setPos(mousePoint.y())
+            
+            self.crosshair_v4.setPos(mousePoint.x())
+            self.crosshair_h4.setPos(mousePoint.y())
+            
+            self.crosshair_v5.setPos(mousePoint.x())
+            self.crosshair_h5.setPos(mousePoint.y())
+            
+            self.crosshair_v6.setPos(mousePoint.x())
+            self.crosshair_h6.setPos(mousePoint.y())
                  
             self.x = int(mousePoint.x())
             self.y = int(mousePoint.y())

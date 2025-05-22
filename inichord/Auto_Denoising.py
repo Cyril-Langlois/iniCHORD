@@ -14,7 +14,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 from skimage.metrics import mean_squared_error as mse
 from skimage.restoration import denoise_tv_chambolle
 from skimage.metrics import structural_similarity as ssim

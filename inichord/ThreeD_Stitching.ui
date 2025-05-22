@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>550</width>
+    <width>477</width>
     <height>565</height>
    </rect>
   </property>
@@ -194,7 +194,7 @@ QGroupBox {
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../Traitement_stack/icons/import_icon.png</normaloff>../Traitement_stack/icons/import_icon.png</iconset>
+            <normaloff>icons/import_icon.png</normaloff>icons/import_icon.png</iconset>
           </property>
          </widget>
         </item>
@@ -735,7 +735,7 @@ QGroupBox {
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+            <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
           </property>
          </widget>
         </item>
@@ -779,56 +779,60 @@ QGroupBox {
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
-              <widget class="QPushButton" name="Push_export">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>96</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Export the cropped stitched map in the main GUI.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Export to main GUI</string>
-               </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../Traitement_stack/icons/Export.png</normaloff>../Traitement_stack/icons/Export.png</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="Save_bttn">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>96</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Saving of data of interest.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Save data</string>
-               </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../Traitement_stack/icons/save_icon.png</normaloff>../Traitement_stack/icons/save_icon.png</iconset>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="QPushButton" name="Push_export">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>96</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Export the cropped stitched map in the main GUI.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Export</string>
+                 </property>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>icons/Export.png</normaloff>icons/Export.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="Save_bttn">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>96</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Saving of data of interest.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Save</string>
+                 </property>
+                 <property name="icon">
+                  <iconset>
+                   <normaloff>icons/save_icon.png</normaloff>icons/save_icon.png</iconset>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>
@@ -1778,7 +1782,7 @@ QGroupBox {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>550</width>
+     <width>477</width>
      <height>20</height>
     </rect>
    </property>

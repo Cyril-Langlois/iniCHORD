@@ -14,7 +14,7 @@ from inspect import getsourcefile
 import cv2
 import numpy as np
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 import tifffile as tf
 
 import pyqtgraph as pg

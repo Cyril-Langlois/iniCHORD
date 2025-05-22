@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>842</width>
-    <height>692</height>
+    <width>1024</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@ QWidget, QLabel, QComboBox, QProgressBar, QSpinBox {background-color: rgb(253, 2
 QPushButton:disabled, QComboBox:disabled, QSpinBox:disabled {background-color: rgba(243, 98, 64,150)}
 
 /* Couleur des boutons et des selecteurs */
-QPushButton, QComboBox::drop-down:button, QComboBox::down-arrow, QComboBox::down-arrow:disabled, QSpinBox::drop-down:button, QSpinBox::down-arrow, QSpinBox::down-arrow:disabled, QSpinBox::drop-up:button, QSpinBox::up-arrow, QSpinBox::up-arrow:disabled, QSlider::handle:horizontal {background-color: rgb(226, 120, 95)}
+QPushButton, QComboBox::drop-down:button, QComboBox::down-arrow, QComboBox::down-arrow:disabled, QSpinBox::drop-down:button, QSpinBox::down-arrow, QSpinBox::down-arrow:disabled, QSpinBox::drop-up:button, QSpinBox::up-arrow, QSpinBox::up-arrow:disabled, QSlider::handle:horizontal, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::down-arrow, QDoubleSpinBox::down-arrow:disabled, QDoubleSpinBox::drop-up:button, QDoubleSpinBox::up-arrow, QDoubleSpinBox::up-arrow:disabled {background-color: rgb(226, 120, 95)}
 
 /* Couleur des bordures de même couleur que les boutons */
 QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:button {border-color: rgb(193, 167, 181)}
@@ -30,13 +30,13 @@ QComboBox::drop-down:button, QSpinBox::drop-down:button, QSpinBox::drop-up:butto
 QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, Line, QTextEdit, QSpinBox {color: rgb(0, 0, 0)}
 
 /* style des bordures 1 */
-QLabel, QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QLabel, QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
 	border-style : outset;
 	min-width : 5em;
 }
 
 /* style des bordures 2 */
-QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
+QPushButton, QPushButton:hover, QComboBox, QSpinBox  {
 	border-radius: 5px;
 	border-width: 1px;
 	border-color: gray;
@@ -46,7 +46,7 @@ QPushButton, QPushButton:hover, QCheckBox, QComboBox, QSpinBox  {
 QPushButton, QPushButton:hover, QCheckBox, QProgressBar {font: 12pt &quot;Noto Sans Cond&quot;}
 
 /* Font 2 */
-QComboBox, QTextEdit, QSpinBox {font: 10pt &quot;Noto Sans Cond&quot;}
+QComboBox, QTextEdit, QSpinBox, QLineEdit {font: 10pt &quot;Noto Sans Cond&quot;}
 
 /* Padding 1 */
 QLabel, QComboBox, QComboBox::down-arrow, QSpinBox, QSpinBox::down-arrow, QSpinBox::up-arrow {padding : 1px;}
@@ -125,19 +125,19 @@ QProgressBar {
 	margin : 0.5px;
  }
 
-QSpinBox::drop-down:button, QSpinBox::drop-up:button {
+QSpinBox::drop-down:button, QSpinBox::drop-up:button, QDoubleSpinBox::drop-down:button, QDoubleSpinBox::drop-up:button {
 	border-radius: 2px;
 	border-width: 1px;
 	width: 36px;
 }
 
-QSpinBox::down-arrow {
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 	image : url(icons/Arrow_down.png);
     width: 24px;
     height: 22px;
 }
 
-QSpinBox::up-arrow {
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
 	image : url(icons/Arrow_up.png);
     width: 24px;
     height: 22px;
@@ -166,9 +166,9 @@ QGroupBox {
    <property name="styleSheet">
     <string notr="true"/>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
@@ -177,8 +177,96 @@ QGroupBox {
            <string>Initialization parameters</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_10">
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <item>
+              <widget class="QLabel" name="label_CLAHE">
+               <property name="font">
+                <font>
+                 <family>Noto Sans Cond</family>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+               </property>
+               <property name="text">
+                <string>CLAHE intensity</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::PlainText</enum>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="CLAHE_SpinBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>126</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;The higher the value, the stronger the Contrast Limited Adaptative Histogram Equalization (CLAHE)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               </property>
+               <property name="decimals">
+                <number>2</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.020000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="spacing">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QLabel" name="Label_radius">
                <property name="sizePolicy">
@@ -609,6 +697,10 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              <property name="text">
               <string>Apply parameters</string>
              </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
+             </property>
             </widget>
            </item>
            <item>
@@ -623,7 +715,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -657,7 +749,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>96</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -694,52 +786,63 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              <string>Registration methods</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_11">
-             <item>
-              <widget class="QComboBox" name="transfo_comboBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>79</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Transformation used for registration&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Translation</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Scaled rotation</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Rigid body</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Affine</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Homography</string>
-                </property>
-               </item>
-              </widget>
-             </item>
+             <property name="spacing">
+              <number>5</number>
+             </property>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <widget class="QComboBox" name="transfo_comboBox">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>79</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Transformation used for registration&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="currentText">
+                  <string>Shift X-Y</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Shift X-Y</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Translation</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Scaled rotation</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Rigid body</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Affine</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Homography</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
                <item>
                 <widget class="QComboBox" name="choiceBox">
                  <property name="sizePolicy">
@@ -786,39 +889,157 @@ font : 12pt &quot;Noto Sans Cond&quot;;
                  </item>
                 </widget>
                </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <property name="spacing">
+                <number>0</number>
+               </property>
                <item>
-                <widget class="QPushButton" name="push_compute">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+                <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <property name="spacing">
+                  <number>5</number>
                  </property>
-                 <property name="font">
-                  <font>
-                   <family>Noto Sans Cond</family>
-                   <pointsize>12</pointsize>
-                   <weight>50</weight>
-                   <italic>false</italic>
-                   <bold>false</bold>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Run the registration computation&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true"/>
-                 </property>
-                 <property name="text">
-                  <string>Run</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
-                 </property>
-                </widget>
+                 <item>
+                  <widget class="QLabel" name="XY_label">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>100</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <family>Noto Sans Cond</family>
+                     <pointsize>12</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">QLabel {
+color: rgb(0, 0, 0);
+background-color:	rgb(253, 249, 248);
+border-style : outset;
+Border-radius : 5px;
+border-width : 0px;
+border-color : black;
+min-width : 5em;
+padding : 5px;
+font : 12pt &quot;Noto Sans Cond&quot;;
+}</string>
+                   </property>
+                   <property name="text">
+                    <string>X-Y reslice factor</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="XY_box">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>79</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <family>Noto Sans Cond</family>
+                     <pointsize>10</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Blur factor applied to the treated stack&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="currentText">
+                    <string>3</string>
+                   </property>
+                   <property name="currentIndex">
+                    <number>1</number>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>2</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>3</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>4</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>5</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="push_compute">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Noto Sans Cond</family>
+                 <pointsize>12</pointsize>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Run the registration computation&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>Run</string>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QProgressBar" name="progressBar">
@@ -1092,7 +1313,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>TSG_icons/Export.png</normaloff>TSG_icons/Export.png</iconset>
+              <normaloff>icons/Export.png</normaloff>icons/Export.png</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -1106,8 +1327,11 @@ font : 12pt &quot;Noto Sans Cond&quot;;
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
+         <widget class="QSplitter" name="splitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QLabel" name="label">
@@ -1323,8 +1547,8 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
+          </widget>
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QLabel" name="label_2">
@@ -1537,8 +1761,8 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
+          </widget>
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QLabel" name="label_3">
@@ -1751,8 +1975,8 @@ font : 12pt &quot;Noto Sans Cond&quot;;
              </widget>
             </item>
            </layout>
-          </item>
-         </layout>
+          </widget>
+         </widget>
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -1817,8 +2041,8 @@ font : 12pt &quot;Noto Sans Cond&quot;;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>842</width>
-     <height>20</height>
+     <width>1024</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

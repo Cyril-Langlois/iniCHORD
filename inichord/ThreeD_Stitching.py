@@ -19,7 +19,7 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi
@@ -551,8 +551,8 @@ class MainWindow(uiclass, baseclass):
                 file.write("\nSearching range (pxls): full images")   
             else:
                 file.write("\nSearching range (pxls): "+ str(self.val_range))  
-            file.write("\nTransformation: " + str(self.val_tresh)) 
-            file.write("\nThreshold: " + str(self.transfo_choice)) 
+            file.write("\nTransformation: " + str(self.transfo_choice)) 
+            file.write("\nThreshold: " + str(self.val_tresh))
 
         # Finished message
         self.popup_message("3D stitching","Saving process is over.",'icons/Stitch_icon.png')

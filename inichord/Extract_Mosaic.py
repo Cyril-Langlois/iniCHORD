@@ -15,7 +15,7 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore
 
-from inichord import General_Functions as gf
+import General_Functions as gf
 import tifffile as tf
 import numpy as np
 import tkinter as tk
@@ -53,6 +53,11 @@ class MainWindow(uiclass, baseclass):
         self.Erroneous_bttn.setEnabled(False)
         self.Save_bttn.setEnabled(False)
         
+        self.label_checkseries.setVisible(False)
+        self.Checkseries_box.setVisible(False)
+        
+        self.Checkseries_box.valueChanged.connect(self.display_series)
+        
         app = QApplication.instance()
         screen = app.screenAt(self.pos())
         geometry = screen.availableGeometry()
@@ -61,6 +66,14 @@ class MainWindow(uiclass, baseclass):
         self.move(int(geometry.width() * 0.05), int(geometry.height() * 0.05))
         self.resize(int(geometry.width() * 0.8), int(geometry.height() * 0.6))
         self.screen = screen
+
+    def display_series(self):
+        Value = self.Checkseries_box.value()
+        
+        self.displayed_stack = np.flip(self.images_dict[f"images_{Value}"], 1) # Flip the array
+        self.displayed_stack = np.rot90(self.displayed_stack, k=1, axes=(2, 1)) # Rotate the array
+        
+        self.displayExpStack(self.displayed_stack)
 
     def popup_message(self,title,text,icon):
         msg = QDialog(self) # Create a Qdialog box
@@ -217,6 +230,13 @@ class MainWindow(uiclass, baseclass):
         self.Threshold.setEnabled(True)
         self.Erroneous_bttn.setEnabled(True)
         self.Save_bttn.setEnabled(True)
+        
+        self.label_checkseries.setVisible(True)
+        self.Checkseries_box.setVisible(True)
+        
+        self.Checkseries_box.setRange(0,self.series_nbr-1)
+        self.Checkseries_box.setSingleStep(1)
+        self.Checkseries_box.setValue(0)
 
     def image_correction(self):
         self.Threshold_value = self.Threshold.value()
@@ -309,7 +329,7 @@ class MainWindow(uiclass, baseclass):
             for i, nom in enumerate(cles_inverses, start=1):
                 tableau = tableaux[nom]
                 # Définir le chemin complet du fichier avec le nom de la clé et l'indice inversé
-                chemin_complet = os.path.join(dossier, f"serie_{i}.tiff")
+                chemin_complet = os.path.join(dossier, f"serie_{i-1}.tiff")
     
                 # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
                 tf.imwrite(chemin_complet, tableau)

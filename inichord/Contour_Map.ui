@@ -204,7 +204,7 @@ QGroupBox {
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../Traitement_stack/icons/import_icon.png</normaloff>../Traitement_stack/icons/import_icon.png</iconset>
+              <normaloff>icons/import_icon.png</normaloff>icons/import_icon.png</iconset>
             </property>
            </widget>
           </item>
@@ -561,7 +561,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>TSG_icons/run_icon.png</normaloff>TSG_icons/run_icon.png</iconset>
+              <normaloff>icons/run_icon.png</normaloff>icons/run_icon.png</iconset>
             </property>
            </widget>
           </item>
@@ -637,7 +637,7 @@ font : 12pt &quot;Noto Sans Cond&quot;;
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../Traitement_stack/icons/Export.png</normaloff>../Traitement_stack/icons/Export.png</iconset>
+              <normaloff>icons/Export.png</normaloff>icons/Export.png</iconset>
             </property>
            </widget>
           </item>

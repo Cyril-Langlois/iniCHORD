@@ -18,13 +18,13 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from PyQt5.QtWidgets import QApplication
 
-from inichord import General_Functions as gf
-from inichord import Registration as align
-from inichord import Remove_FFT as RemFFT
-from inichord import Remove_Outliers as rO
-from inichord import Auto_Denoising as autoden
-from inichord import KAD_Function as KADfunc
-from inichord import Contour_Map as Contour
+import General_Functions as gf
+import Registration as align
+import Remove_FFT as RemFFT
+import Remove_Outliers as rO
+import Auto_Denoising as autoden
+import KAD_Function as KADfunc
+import Contour_Map as Contour
 
 import tkinter as tk
 from tkinter import filedialog
@@ -80,7 +80,8 @@ class MainWindow(uiclass, baseclass):
         self.progressBar.setFormat("Series have been loaded!")
         
         self.Info_box.ensureCursorVisible()
-        self.Info_box.insertPlainText("\n Image series have been loaded.")
+        
+        self.Info_box.insertPlainText("\n eCHORD series have been loaded.")
         self.Info_box.insertPlainText("\n ----------")
         
         self.Run_bttn.setEnabled(True)
@@ -97,6 +98,7 @@ class MainWindow(uiclass, baseclass):
         
         self.Info_box.ensureCursorVisible()
         self.Info_box.insertPlainText("\n Reference images have been loaded.")
+        self.Info_box.insertPlainText("\n ----------")
         
         for i in range(0,len(self.image)):
             ref2 = np.reshape(self.ref[i],(-1,len(self.ref[i]),len(self.ref[i][0])))
@@ -173,16 +175,12 @@ class MainWindow(uiclass, baseclass):
         for i in range(0,len(self.image)):
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText(f"\n Current processed series: {i+1} out of {len(self.image)}")
-            
+            self.Info_box.insertPlainText(f"\n Processed series: {i+1} out of {len(self.image)}")
+        
             QApplication.processEvents()    
             self.ValSlice = i
             self.progression_bar()
-
-            # Creation of the Main_TSG object that will store modifications
-            self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Main object initialization.")
-            
+                    
             Main_TSG = self.parent
             Main_TSG.Current_stack = self.image[i]
             
@@ -196,18 +194,18 @@ class MainWindow(uiclass, baseclass):
             w.choice_transfo = str(self.reg1)
         
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Registration step I in progress.")
+            self.Info_box.insertPlainText("\n     Registration I in progress.")
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Microstructural features definition I.")
+            self.Info_box.insertPlainText("\n       Microstructural features definition")
             w.Pre_treatment()
 
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Start of sequential registration I.")
+            self.Info_box.insertPlainText("\n       Sequential registration")
             w.Seq_registration()
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Crop extra black border I.")
+            self.Info_box.insertPlainText("\n       Crop extra black border")
             w.Crop_data()
             
             Main_TSG.Current_stack = w.Cropped_stack
@@ -216,7 +214,7 @@ class MainWindow(uiclass, baseclass):
             if self.reg2 != "None":
                 
                 self.Info_box.ensureCursorVisible()
-                self.Info_box.insertPlainText("\n     Registration step II in progress.")
+                self.Info_box.insertPlainText("\n     Registration II in progress.")
                 
                 wbis = align.MainWindow(Main_TSG)
             
@@ -227,15 +225,15 @@ class MainWindow(uiclass, baseclass):
                 wbis.choice_transfo = str(self.reg2)
                 
                 self.Info_box.ensureCursorVisible()
-                self.Info_box.insertPlainText("\n     Microstructural features definition II.")
+                self.Info_box.insertPlainText("\n           Microstructural features definition")
                 wbis.Pre_treatment()
   
                 self.Info_box.ensureCursorVisible()
-                self.Info_box.insertPlainText("\n     Start of sequential registration II.")
+                self.Info_box.insertPlainText("\n           Start of sequential registration")
                 wbis.Seq_registration()
                 
                 self.Info_box.ensureCursorVisible()
-                self.Info_box.insertPlainText("\n     Crop extra black border II.")
+                self.Info_box.insertPlainText("\n           Crop extra black border")
                 wbis.Crop_data()
             
                 Main_TSG.Current_stack = wbis.Cropped_stack
@@ -246,7 +244,7 @@ class MainWindow(uiclass, baseclass):
             w2.fft = self.FFT
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Background substraction step in progress.")
+            self.Info_box.insertPlainText("\n     Background substraction in progress.")
             w2.FFTStack()
         
             Main_TSG.Current_stack = w2.filtered_Stack
@@ -258,22 +256,18 @@ class MainWindow(uiclass, baseclass):
             w3.threshold = self.threshold_remout
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Remove outliers step in progress.")
+            self.Info_box.insertPlainText("\n     Remove outliers in progress.")
             w3.remOutStack()
         
             Main_TSG.Current_stack = w3.denoised_Stack
             
-            chemin_complet = os.path.join(dossier, f"Treated_serie_before_denoising_{i+1}.tiff")
-            # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
-            tf.imwrite(chemin_complet, Main_TSG.Current_stack)
-        
-            # Convert to 8 bits if needed
-            if not (isinstance(Main_TSG.Current_stack.flat[0], np.int8) or isinstance(Main_TSG.Current_stack.flat[0], np.uint8)): #if not 8bits
-                Main_TSG.Current_stack = gf.convertToUint8(Main_TSG.Current_stack)
-        
+            # chemin_complet = os.path.join(dossier, f"Treated_serie_before_denoising_{i+1}.tiff")
+            # # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
+            # tf.imwrite(chemin_complet, Main_TSG.Current_stack)
+                
             # Auto-denoising
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Denoising step in progress.")
+            self.Info_box.insertPlainText("\n     Denoising in progress.")
             
             Main_TSG.flag = False
             
@@ -301,40 +295,47 @@ class MainWindow(uiclass, baseclass):
                 w4.Denoise_stack = np.copy(w4.expStack)
                 
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Search for the perfect denoising parameter.")
+            self.Info_box.insertPlainText("\n       Optimization of the denoising parameter")
             w4.AutoDenoisingStep()
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     The SSIM denoising parameters is : " + str(w4.idx_SSIM_info))
-            self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     The MSE denoising parameters is : " + str(w4.idx_MSE_info))
+            self.Info_box.insertPlainText("\n       SSIM parameters: " + str(w4.idx_SSIM_info) + "; MSE parameters: " + str(w4.idx_MSE_info))
+            # self.Info_box.ensureCursorVisible()
+            # self.Info_box.insertPlainText("\n     The MSE denoising parameters is : " + str(w4.idx_MSE_info))
             
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Stack denoising using the absolute and perfect denoising parameter.")
+            self.Info_box.insertPlainText("\n       Stack denoising using the optimal parameter")
             w4.StackDenoising()
         
             Main_TSG.Current_stack = w4.Denoise_stack
         
             # KAD computation 
             self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     KAD computation step in progress.")
+            self.Info_box.insertPlainText("\n     KAD computation in progress.")
             
             stack_norm = KADfunc.centeredEuclidianNorm(Main_TSG.Current_stack, 0) # Normalization of the image series
             KAD = KADfunc.Divided_KAD(stack_norm) # Compute the KAD map
             
             # Contour map computation
-            self.Info_box.ensureCursorVisible()
-            self.Info_box.insertPlainText("\n     Contour map in progress.")
-            
-            w5 = Contour.MainWindow(Main_TSG)
-            
-            w5.radius = self.radius
-            w5.threshold = self.threshold
-            w5.blur = self.blur
-            w5.sobel = self.sobel
-            
-            w5.compute_map()
-            Contour_map = w5.contour_map
+            if self.Contour_groupBox.isChecked():
+                self.Info_box.ensureCursorVisible()
+                self.Info_box.insertPlainText("\n     Contour map in progress.")
+                
+                w5 = Contour.MainWindow(Main_TSG)
+                
+                w5.radius = self.radius
+                w5.threshold = self.threshold
+                w5.blur = self.blur
+                w5.sobel = self.sobel
+                
+                w5.compute_map()
+                Contour_map = w5.contour_map
+                
+                chemin_complet = os.path.join(dossier, f"Contour_{i+1}.tiff")
+                # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
+                tf.imwrite(chemin_complet, Contour_map)
+                
+                del Contour_map
             
             # ask for saving datas 
             chemin_complet = os.path.join(dossier, f"Treated_serie_{i+1}.tiff")
@@ -345,15 +346,11 @@ class MainWindow(uiclass, baseclass):
             # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
             tf.imwrite(chemin_complet, KAD)
             
-            chemin_complet = os.path.join(dossier, f"Contour_{i+1}.tiff")
-            # Sauvegarder le tableau 3D au format TIFF avec le type de données d'origine
-            tf.imwrite(chemin_complet, Contour_map)
-            
-            del(KAD, stack_norm, Main_TSG, Contour_map)
+            del(KAD, stack_norm, Main_TSG)
             
         self.Info_box.ensureCursorVisible()
         self.Info_box.insertPlainText("\n ----------")
-        self.Info_box.insertPlainText("\n Treated series have been saved.")
+        self.Info_box.insertPlainText("\n eCHORD series have been saved.")
 
     def progression_bar(self): # Function for the ProgressBar uses
         self.prgbar = self.ValSlice

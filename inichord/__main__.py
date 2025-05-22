@@ -18,32 +18,36 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-from inichord import General_Functions as gf
-from inichord import Profile_Modification as fct
-from inichord import Edit_Tools as sm
-from inichord import Registration as align
-from inichord import Remove_FFT as RemFFT
-from inichord import Remove_Outliers as rO
-from inichord import NLMD as nl
-from inichord import BM3D as bm
-from inichord import VSNR as vs
-from inichord import TV as tv
-from inichord import Auto_Denoising as autoden
-from inichord import KAD_Function as KADfunc
-from inichord import Contour_Map as Contour
-from inichord import Denoise_2Dmap as Denmap
-from inichord import Grain_Treatment as GB
-from inichord import Restored_Grains as Restored
-from inichord import Extract_Mosaic as Extract_mosaic
-from inichord import Batch_Processing as Batch
-from inichord import TwoD_Stitching as Img_Stitch
-from inichord import ThreeD_Stitching as Series_Stitch
-
-if "cupy" in sys.modules:
-    from indexGPU import Indexation_GUI as Indexation_TSG
+import General_Functions as gf
+import Profile_Modification as fct
+import Edit_Tools as sm
+import Registration as align
+import Remove_FFT as RemFFT
+import Remove_Outliers as rO
+import NLMD as nl
+import BM3D as bm
+import VSNR as vs
+import TV as tv
+import Auto_Denoising as autoden
+import KAD_Function as KADfunc
+import Contour_Map as Contour
+import Denoise_2Dmap as Denmap
+import Grain_Treatment as GB
+import Restored_Grains as Restored
+import Kmean as KmeanClust
+import Extract_Mosaic as Extract_mosaic
+import Batch_Processing as Batch
+import TwoD_Stitching as Img_Stitch
+import ThreeD_Stitching as Series_Stitch
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 
+
+if "cupy" in sys.modules:
+
+    from indexGPU.Indexation_GUI import MainView
+    from indexGPU.data_classes import Model
+    from indexGPU.coreCalc import Controller
 
 class MainWindow(uiclass, baseclass):
     def __init__(self):
@@ -137,8 +141,13 @@ class MainWindow(uiclass, baseclass):
 #%% Functions
     try:
         def Indexation_orientation(self): # Run the indexing sub-gui
-            self.w = Indexation_TSG.MainWindow(self)
+            # self.w = Indexation_TSG.MainWindow(self)
+            # self.w.show()
+            self.model = Model()
+            self.w = MainView(self)
+            self.controller = Controller(self.model, self.w)
             self.w.show()
+            
     except:
         pass
     
@@ -434,6 +443,8 @@ class MainWindow(uiclass, baseclass):
         else:
             self.SavedStack = np.flip(self.SavedStack, 1)
             self.SavedStack = np.rot90(self.SavedStack, k=1, axes=(2, 1))
+        
+        self.SavedStack = self.SavedStack.astype('float32')
             
         gf.Saving_img_or_stack(self.SavedStack)
         self.Info_box.insertPlainText("\n \u2022 Data saved : " + str(self.choice))
@@ -574,6 +585,10 @@ class MainWindow(uiclass, baseclass):
             
         elif self.Toolchoice == "Restored grains": # Run the restored grains sub-gui
             self.w = Restored.MainWindow(self)
+            self.w.show()   
+            
+        elif self.Toolchoice == 'Kmean clustering': # Run the Kmean clustering of 3D series
+            self.w = KmeanClust.MainWindow(self)
             self.w.show()   
             
         elif self.Toolchoice == "GRDD-GDS": # Run the GRDD-GDS computation step
