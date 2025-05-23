@@ -15,7 +15,13 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+
+
 from skimage import morphology, filters, exposure
 
 path2thisFile = abspath(getsourcefile(lambda:0))

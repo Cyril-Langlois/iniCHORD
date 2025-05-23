@@ -18,27 +18,51 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-import General_Functions as gf
-import Profile_Modification as fct
-import Edit_Tools as sm
-import Registration as align
-import Remove_FFT as RemFFT
-import Remove_Outliers as rO
-import NLMD as nl
-import BM3D as bm
-import VSNR as vs
-import TV as tv
-import Auto_Denoising as autoden
-import KAD_Function as KADfunc
-import Contour_Map as Contour
-import Denoise_2Dmap as Denmap
-import Grain_Treatment as GB
-import Restored_Grains as Restored
-import Kmean as KmeanClust
-import Extract_Mosaic as Extract_mosaic
-import Batch_Processing as Batch
-import TwoD_Stitching as Img_Stitch
-import ThreeD_Stitching as Series_Stitch
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+import inichord.Profile_Modification as fct
+import inichord.Edit_Tools as sm
+import inichord.Registration as align
+import inichord.Remove_FFT as RemFFT
+import inichord.Remove_Outliers as rO
+import inichord.NLMD as nl
+import inichord.BM3D as bm
+import inichord.VSNR as vs
+import inichord.TV as tv
+import inichord.Auto_Denoising as autoden
+import inichord.KAD_Function as KADfunc
+import inichord.Contour_Map as Contour
+import inichord.Denoise_2Dmap as Denmap
+import inichord.Grain_Treatment as GB
+import inichord.Restored_Grains as Restored
+import inichord.Kmean as KmeanClust
+import inichord.Extract_Mosaic as Extract_mosaic
+import inichord.Batch_Processing as Batch
+import inichord.TwoD_Stitching as Img_Stitch
+import inichord.ThreeD_Stitching as Series_Stitch
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+# import Profile_Modification as fct
+# import Edit_Tools as sm
+# import Registration as align
+# import Remove_FFT as RemFFT
+# import Remove_Outliers as rO
+# import NLMD as nl
+# import BM3D as bm
+# import VSNR as vs
+# import TV as tv
+# import Auto_Denoising as autoden
+# import KAD_Function as KADfunc
+# import Contour_Map as Contour
+# import Denoise_2Dmap as Denmap
+# import Grain_Treatment as GB
+# import Restored_Grains as Restored
+# import Kmean as KmeanClust
+# import Extract_Mosaic as Extract_mosaic
+# import Batch_Processing as Batch
+# import TwoD_Stitching as Img_Stitch
+# import ThreeD_Stitching as Series_Stitch
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/__main__.ui") 

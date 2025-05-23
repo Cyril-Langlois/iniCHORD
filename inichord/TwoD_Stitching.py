@@ -20,7 +20,11 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushBut
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi

@@ -18,13 +18,23 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from PyQt5.QtWidgets import QApplication
 
-import General_Functions as gf
-import Registration as align
-import Remove_FFT as RemFFT
-import Remove_Outliers as rO
-import Auto_Denoising as autoden
-import KAD_Function as KADfunc
-import Contour_Map as Contour
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+import inichord.Registration as align
+import inichord.Remove_FFT as RemFFT
+import inichord.Remove_Outliers as rO
+import inichord.Auto_Denoising as autoden
+import inichord.KAD_Function as KADfunc
+import inichord.Contour_Map as Contour
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+# import Registration as align
+# import Remove_FFT as RemFFT
+# import Remove_Outliers as rO
+# import Auto_Denoising as autoden
+# import KAD_Function as KADfunc
+# import Contour_Map as Contour
 
 import tkinter as tk
 from tkinter import filedialog

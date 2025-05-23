@@ -16,7 +16,13 @@ from PyQt5.QtWidgets import QApplication
 import numpy as np
 from pyqtgraph.Qt import QtGui
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+
+
 from skimage.restoration import denoise_tv_chambolle
 from skimage import filters, exposure
 from skimage.morphology import disk

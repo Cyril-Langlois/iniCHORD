@@ -13,7 +13,13 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QVBoxLayout, QPushBut
 from PyQt5 import QtCore, QtGui
 from scipy import ndimage
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+
+
 from scipy.fft import fft2, ifft2, fftshift
 
 path2thisFile = abspath(getsourcefile(lambda:0))

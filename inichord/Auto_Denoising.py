@@ -9,15 +9,18 @@ from os.path import abspath
 
 from inspect import getsourcefile
 import numpy as np
-
+from skimage.metrics import mean_squared_error as mse
+from skimage.restoration import denoise_tv_chambolle
+from skimage.metrics import structural_similarity as ssim
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-import General_Functions as gf
-from skimage.metrics import mean_squared_error as mse
-from skimage.restoration import denoise_tv_chambolle
-from skimage.metrics import structural_similarity as ssim
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
 
 path2thisFile = abspath(getsourcefile(lambda:0))
 uiclass, baseclass = pg.Qt.loadUiType(os.path.dirname(path2thisFile) + "/Auto_Denoising.ui")

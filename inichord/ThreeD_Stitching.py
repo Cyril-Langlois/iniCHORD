@@ -19,7 +19,11 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QDialog, QVBoxLayout, QPushButton
 from PyQt5 import QtCore, QtGui
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
 
 from skimage import exposure
 from scipy import ndimage as ndi

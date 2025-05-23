@@ -15,7 +15,12 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+
 import tifffile as tf
 import time
 from sklearn.cluster import MiniBatchKMeans

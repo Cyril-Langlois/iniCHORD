@@ -3,7 +3,13 @@
 import numpy as np
 # from scipy import ndimage
 # from scipy import fftpack, signal
-import General_Functions as gf
+
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+
 import scipy.io.wavfile
 from scipy.signal import savgol_filter, filtfilt, butter
 

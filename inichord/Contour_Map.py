@@ -14,7 +14,12 @@ from inspect import getsourcefile
 import cv2
 import numpy as np
 
-import General_Functions as gf
+#------------------------------import for pypi lib use-------------------------
+import inichord.General_Functions as gf
+
+#------------------------------import for local dev use------------------------
+# import General_Functions as gf
+
 import tifffile as tf
 
 import pyqtgraph as pg
