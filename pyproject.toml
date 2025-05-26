@@ -19,7 +19,7 @@ opencv-python = "^4.10"
 h5py = "^3.11"
 pyqt5 = "^5.15"
 pyqtgraph = "^0.13"
-scikit-image = "^0.24"
+scikit-image = ">=0.24"
 
 [build-system]
 requires = ["poetry-core"]
